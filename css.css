@@ -1,0 +1,619 @@
+/*!
+ * Calculla Columnar Addition Calculator V1 (https://v1.calculla.com/columnar_add)
+ */
+
+ <style>
+
+ html,body {
+    width: 100%;
+    height: 100%;
+    margin: 0
+ }
+
+ body {
+     background-color: #ffffff;
+     font-family: Verdana, Helvetica, Arial;
+     font-size: 15px;
+     color: #e2e2e2;
+     margin: 0
+ }
+
+ body b {
+     color: #4ff
+ }
+
+ td {
+     font-family: Verdana, Helvetica, Arial;
+     font-size: 11px;
+     color: #000000;
+     margin: 0;
+     padding: 1px
+ }
+
+ A, A:link {
+     color: #77cfff;
+     text-decoration: none
+ }
+
+ A:Hover {
+     color: #000000;
+     text-decoration: underline
+ }
+
+ h1 {
+     font-size: 19px;
+     margin: 0px;
+     margin-top: 15px
+ }
+
+ h2 {
+     font-size: 15px;
+     margin: 0px;
+     margin-top: 12px
+ }
+
+ ul {
+     margin: 0px 0px 8px 30px;
+     padding: 0px
+ }
+
+ li {
+     margin: 0px 0px 0px 0px;
+     padding: 0px
+ }
+
+ textarea {
+     font-size: 12px
+ }
+
+ textarea, select {
+     color: #000000;
+     background-color: #fcfcfc;
+     border: 1px solid #999988;
+     margin: 0 auto
+ }
+
+ option.group {
+     background-color: #ffffff;
+     font-weight: bold
+ }
+
+ input.checkbox {
+     margin-right: 4px
+ }
+
+ textarea:hover, select:hover {
+     background-color: #e0d9b8
+ }
+
+ form {
+     margin: 0px
+ }
+
+ button {
+     font-size: 11px
+ }
+
+ img {
+     border: 0px
+ }
+
+ p {
+     padding: 0px;
+     margin: 4px 0px 4px 0px
+ }
+
+ div {
+     overflow: hidden;
+     margin: 0 auto
+ }
+
+ #all {
+     width: 1001px;
+     margin: 0 auto
+ }
+
+ #left_side {
+     width: 201px;
+     float: left
+ }
+
+ .home_col_menu {
+     font-size: 11px;
+     background-color: #f3ecc4;
+     text-align: center
+ }
+
+ .home_col_menu ul {
+     list-style-type: decimal;
+     padding: 0px;
+     margin: 0px;
+     text-align: left
+ }
+
+ .home_col_menu li {
+     display: block;
+     border-bottom: 1px dotted #999999;
+     padding-top: 2px;
+     padding-bottom: 2px
+ }
+
+ .home_col_menu .selected {
+     background-color: #dcd08d;
+     font-weight: bold
+ }
+
+ .home_col_menu li a {
+     text-decoration: none
+ }
+
+ .home_col_menu li:hover, .home_col_menu li:active {
+     background-color: #e0d9b8
+ }
+
+ .home_col_menu a:link, .home_col_menu a:visited {
+     color: #000000;
+     text-decoration: none
+ }
+
+ .home_col_menu a:hover, .home_col_menu a:active {
+     text-decoration: underline
+ }
+
+ .home_col_menu .short_desc {
+     text-align: right;
+     font-size: 9px;
+     font-weight: normal
+ }
+
+ .home_col_menu .short_desc a:link, .home_col_menu .short_desc a:visited, .home_col_menu .short_desc a:hover, .home_col_menu .short_desc a:active {
+     color: #555555
+ }
+
+ .home_col_menu h1 {
+     font-size: 20px
+ }
+
+ .tableMenuGroups {
+     width: 85%;
+     border-spacing: 1px;
+     background-color: #dcd08d;
+     margin: 0 auto;
+     margin-bottom: 5px
+ }
+
+ .tableMenuGroups td {
+     width: 50%;
+     vertical-align: top;
+     background-color: #f3ecc4;
+     font-size: 9px
+ }
+
+ .right_side {
+     width: 800px;
+     overflow: hidden
+ }
+
+ .upper_menu {
+     color: #f8f5e4;
+     height: 54px;
+     overflow: hidden
+ }
+
+ .upper_menu_in {
+     float: left;
+     margin-top: 12px;
+     margin-left: 12px;
+     width: 210px
+ }
+
+ .upper_menu_stats {
+     float: left;
+     margin-top: 14px;
+     margin-left: 50px;
+     width: 210px;
+     text-align: right
+ }
+
+ .upper_menu_fb {
+     float: left;
+     margin-top: 9px;
+     margin-left: 50px;
+     width: 210px;
+     text-align: right
+ }
+
+ .upper_menu a:link, .upper_menu a:visited {
+     color: #f3ecc4;
+     text-decoration: none
+ }
+
+ .upper_menu a:hover {
+     color: #f3ecc4;
+     text-decoration: underline
+ }
+
+ #text_submenu {
+     margin-top: 22px;
+     margin-left: 10px;
+     margin-right: 10px
+ }
+
+ #body {
+     margin-top: 15px
+ }
+
+ .column_main {
+     padding-top: 5px
+ }
+
+ .column_main a:link, .column_main a:visited {
+     color: #434343
+ }
+
+ .column_main a:hover {
+     color: #656565;
+     text-decoration: underline
+ }
+
+ .center_ad {
+     width: 730px;
+     margin: 0 auto;
+     margin-top: 10px;
+     margin-bottom: 10px
+ }
+
+ .bottom_ad {
+     width: 730px;
+     margin: 0 auto;
+     margin-top: 50px;
+     margin-bottom: 30px
+ }
+
+ #foot {
+     width: 100%;
+     margin-top: 28px;
+     font-size: 9px;
+     color: #f8f5e4
+ }
+
+ #foot .silent {
+     color: #1e1b16
+ }
+
+ #foot_all {
+     width: 1000px
+ }
+
+ #foot A {
+     font-size: 9px;
+     color: #f8f5e4;
+     text-decoration: none
+ }
+
+ #foot A:Hover {
+     font-size: 9px;
+     color: #f8f5e4;
+     text-decoration: underline
+ }
+
+ #foot_left {
+     width: 290px;
+     margin-top: 25px;
+     margin-left: 4px;
+     float: left;
+     text-align: left
+ }
+
+ #foot_mid {
+     width: 370px;
+     margin-top: 25px;
+     float: left;
+     text-align: center
+ }
+
+ #foot_right {
+     width: 290px;
+     margin-top: 25px;
+     margin-right: 4px;
+     float: right;
+     text-align: right
+ }
+
+ .center {
+     text-align: center
+ }
+
+ div.indent {
+     margin-left: 11px
+ }
+
+ .description,.chapter_text {
+     margin-left: 30px;
+     margin-bottom: 15px
+ }
+
+ .notice li {
+     margin: 0px 0px 0px 10px;
+     padding: 0px;
+     font-size: 11px;
+     font-weight: normal
+ }
+
+ .detail li {
+     font-size: 11px;
+     font-weight: normal
+ }
+
+ .V2calculatorLink {
+     text-align: center;
+     font-size: 16px;
+     font-weight: bold;
+     font-variant: small-caps;
+     background-color: rgba(0,0,0,0.15);
+     padding: 10px
+ }
+
+ table.calcTable {
+     background-color: #dcd08d;
+     border-spacing: 1px;
+     margin: 0 auto
+ }
+
+ .calcTable td {
+     background-color: #ffffff
+ }
+
+ .calcTable td.calc_td {
+     background-color: #ffffff
+ }
+
+ .calcTable td.calc_td2,.calc_td2 {
+     background-color: #f3ecc4
+ }
+
+ .calc_td:hover, .calc_td2:hover {
+     background-color: #dcd08d
+ }
+
+ table.calcTable .header td {
+     background-color: #f3ecc4;
+     text-align: center
+ }
+
+ table.calcList {
+     border-spacing: 0px;
+     width: 90%;
+     margin: 0px auto
+ }
+
+ .calcList td {
+     width: 33%;
+     vertical-align: top
+ }
+
+ .calcList td.header {
+     background-color: #f3ecc4;
+     text-align: center;
+     font-size: 13px
+ }
+
+ table.calcListGrid {
+     background-color: #dcd08d;
+     border-spacing: 1px;
+     margin: 0 auto
+ }
+
+ .calcListGrid td:hover {
+     background-color: #f3ecc4
+ }
+
+ .calcListGrid td {
+     background-color: #ffffff
+ }
+
+ .calcListGrid td.feature {
+     text-align: center
+ }
+
+ .calcListGrid td.feature_yes {
+     background-color: #f3ecc4;
+     text-align: center
+ }
+
+ .calcListGrid .header td,.calcListGrid td.header {
+     background-color: #f3ecc4;
+     text-align: center
+ }
+
+ table.tableResult {
+     background-color: #dcd08d;
+     border-spacing: 1px;
+     margin: 0 auto
+ }
+
+ .tableResult td {
+     background-color: #ffffff;
+     padding: 2px
+ }
+
+ table.tableResult .centered td {
+     text-align: center
+ }
+
+ table.tableResult .header td,table.tableResult td.header {
+     background-color: #f3ecc4;
+     text-align: center
+ }
+
+ .simple_border {
+     border: 1px solid #bbbbbb
+ }
+
+ div.calcTable {
+     background-color: #f3ecc4;
+     margin: 0 auto
+ }
+
+ div.input_zone {
+     background-repeat: no-repeat;
+     background-color: #ffffff;
+     padding-top: 60px;
+     padding-left: 8px;
+     padding-right: 8px;
+     width: 800px
+ }
+
+ div.input_zone_navigation {
+     float: right;
+     width: 400px;
+     text-align: right;
+     margin-right: 50px
+ }
+
+ .input_zone h1 {
+     color: #000000;
+     font-size: 21px;
+     margin: 0px
+ }
+
+ .input_zone h2 {
+     color: #000000;
+     font-size: 21px;
+     margin: 0px
+ }
+
+ .input_zone h3 {
+     color: #000000;
+     font-size: 15px;
+     margin: 0px
+ }
+
+ .input_zone h4 {
+     color: #000000;
+     font-weight: normal;
+     margin-left: 25px
+ }
+
+ .input_zone div.result,.input_zone div.resultBig {
+     overflow: auto
+ }
+
+ .input_zone div.resultBig {
+     font-size: 21px
+ }
+
+ .input_zone .weakComment {
+     color: #80c080;
+     font-size: 9px
+ }
+
+ .input_zone .weakComment:hover {
+     color: #004000;
+     font-size: 9px
+ }
+
+ table.mathFraction {
+     display: inline;
+     padding: 1px
+ }
+
+ table.mathFraction td {
+     padding: 2px;
+     text-align: center
+ }
+
+ textarea.calc_TextArea {
+ }
+
+ div.calc_TextArea {
+     width: 100%;
+     background-color: #fcfefc;
+     border: 1px solid #999988;
+     margin: 0 auto;
+     overflow: auto
+ }
+
+ div.calc_formula {
+     margin: 8px auto;
+     text-align: center
+ }
+
+ .lock_frozen a, .lock_frozen a:link, .lock_frozen a:visited, .lock_frozen a:active {
+     color: #008888;
+     text-decoration: none
+ }
+
+ .lock_frozen a:hover {
+     color: #cc0000
+ }
+
+ .lock_unfrozen a, .lock_unfrozen a:link, .lock_unfrozen a:visited, .lock_unfrozen a:active {
+     color: #cc0000;
+     text-decoration: none;
+     font-weight: bold
+ }
+
+ .lock_unfrozen a:hover {
+     color: #cc0000;
+     text-decoration: none
+ }
+
+ table.silent,table.silentAlignTop {
+     border-spacing: 0px;
+     background-color: #ffffff
+ }
+
+ .silent td {
+     padding: 1px
+ }
+
+ .silentAlignTop td {
+     vertical-align: top
+ }
+
+ .silent {
+     color: #aaaaaa;
+     font-size: 9px
+ }
+
+ .weak {
+     color: #888888
+ }
+
+ .special_comment {
+     color: #ff0000
+ }
+
+ .ra_net_head {
+     font-size: 14px;
+     color: #000000;
+     font-weight: bold
+ }
+
+ .ra_net_s3, a.ra_net_s3, a.ra_net_s3:link, a.ra_net_s3:visited, a.ra_net_s3:active, a.ra_net_s3:hover {
+     font-size: 15px;
+     color: #555555
+ }
+
+ .ra_net_s2, a.ra_net_s2, a.ra_net_s2:link, a.ra_net_s2:visited, a.ra_net_s2:active, a.ra_net_s2:hover {
+     font-size: 13px;
+     color: #777777
+ }
+
+ .ra_net_s1, a.ra_net_s1, a.ra_net_s1:link, a.ra_net_s1:visited, a.ra_net_s1:active, a.ra_net_s1:hover {
+     font-size: 9px;
+     color: #999999
+ }
+
+ table.logger {
+     border-spacing: 1px;
+     background-color: #dddddd
+ }
+
+ .logger td {
+     font-size: 9px;
+     background-color: #ffffff
+ }
+
+ </style>

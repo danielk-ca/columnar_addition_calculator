@@ -1,0 +1,2089 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<!-- Columnar Addition Calculator -->
+<!-- Calculator to add numbers. It displays the sum of any given numbers. It also displays columnar addition of these numbers, the carrying (regrouping), partial sums etc. Can be useful for primary school students (learning how to do columnar addition), for financial operations (can be set up to display dollar/cent format) and... for any other addition related purpose. -->
+<!-- Written by Ke.mU Studio [http://www.ke.mu] -->
+<!-- Source: https://v1.calculla.com/columnar_add -->
+<!-- Cached Source: https://webcache.googleusercontent.com/search?q=cache:http://v1.calculla.com/columnar_add -->
+
+    <head>
+        <title>Columnar Addition Calculator</title>
+        <link rel="stylesheet" href="css.css">
+        <script src="./jquery-1.4.4.min.js"></script>
+
+        </head>
+        <body>
+            <script language="javascript" type="text/javascript">
+
+// Kemu.JavaScript.Logger ver 0.8 [2009-2010 by yosh]
+
+                LogChannel.prototype = {
+                    pChannelName: '',
+                    pCurrentEntry: null,
+                    pParentLog: null,
+                    addTextToEntry: function(txt) {
+                        if (this.pCurrentEntry) {
+                            this.pCurrentEntry.txt = this.pCurrentEntry.txt + txt;
+                        } else {
+                            var d = new Date();
+                            this.pCurrentEntry = new Object();
+                            this.pCurrentEntry.txt = txt;
+                            this.pCurrentEntry.time = d.getTime();
+                            this.pCurrentEntry.channel = this.pChannelName;
+                        }
+                    },
+                    commitEntry: function(txt) {
+                        this.addTextToEntry(txt);
+                        this.pParentLog.addEntryFromChannel(this.pChannelName, this.pCurrentEntry);
+                        this.pCurrentEntry = null;
+                    },
+                    log: function(txt) {
+                        this.commitEntry(txt);
+                    },
+                    logSub: function(txt) {
+                        this.addTextToEntry(txt);
+                        this.commitToTarget();
+                    },
+                    logError: function(txt) {
+                        this.commitEntry('<span style="color:#ff0000">' + txt + '</span>');
+                    },
+                    logObject: function(obj, prefix) {
+                        if (prefix == null) {
+                            prefix = '';
+                        }
+                        if (obj == null) {
+                            this.commitEntry(prefix + 'Object is null...');
+                        } else if (typeof obj == 'string') {
+                            this.commitEntry(prefix + ' String "' + CONVERT_UTFToHTMLTextOnly(obj) + '"');
+                        } else {
+                            var txt = '<table class="jsLog"><tbody>';
+                            txt += '<tr><td colspan="4">';
+                            if (prefix != '') {
+                                txt += prefix + '<br/>';
+                            }
+                            txt += '{';
+                            if (obj.length) {
+                                txt += ' array length:' + obj.length;
+                            }
+                            txt += '</td></tr>';
+                            for (var idx in obj) {
+                                txt += '<tr><td style="width:15px"></td><td><b>' + idx + '</b></td><td>[' + (typeof obj[idx]) + ']</td><td> ' + CONVERT_UTFToHTMLTextOnly(obj[idx]) + '</td></tr>';
+                            }
+                            txt += '<tr><td colspan="4">}</td></tr></tbody></table>';
+                            this.commitEntry(txt);
+                        }
+                    },
+                    logTextAndObject: function(prefixText, obj) {
+                        this.logObject(obj, prefixText);
+                    },
+                    logStatus: function(txt, statusTxt, statusColor) {
+                        this.log(txt + ' [<span style="color:#' + statusColor + '">' + statusTxt + '</span>]');
+                    },
+                    logOkFail: function(txt, isOk) {
+                        if (isOk) {
+                            this.logStatus(txt, 'OK', '00ff00');
+                        } else {
+                            this.logStatus(txt, 'fail', 'ff0000');
+                        }
+                    }
+                };
+                Log.prototype = new LogChannel();
+                Log.prototype.constructor = Log;
+                Log.prototype.pEntries = new Array(),
+                Log.prototype.pCommitedTxt = '';
+                Log.prototype.pConfig = {
+                    showTime: 0
+                };
+                Log.prototype.setTargetId = function(targetId) {
+                    this.pTargetId = targetId;
+                    this.commitToTarget();
+                }
+                ;
+                Log.prototype.generateEntryTxt = function(entryObj) {
+                    var rv = '';
+                    if (this.pConfig.showTime) {
+                        rv += '[' + entryObj.time + '] ';
+                    }
+                    rv += '[' + entryObj.channel + '] ';
+                    rv += entryObj.txt;
+                    return rv;
+                }
+                ;
+                Log.prototype.addEntryFromChannel = function(chanelName, entryObj) {
+                    this.pCommitedTxt = this.pCommitedTxt + this.generateEntryTxt(entryObj) + '<br/>';
+                    this.commitToTarget();
+                }
+                ;
+                Log.prototype.commitToTarget = function() {
+                    if (document) {
+                        if (document.getElementById(this.pTargetId)) {
+                            document.getElementById(this.pTargetId).innerHTML = '-*- Kemu JavaScript Logger v 0.8 -*-<br/>' + this.pCommitedTxt;
+                        }
+                    }
+                }
+                ;
+                Log.prototype.createChannel = function(name) {
+                    var rv = new LogChannel(this,name);
+                    return rv;
+                }
+                ;
+                function LogChannel(parentLog, name) {
+                    this.pParentLog = parentLog;
+                    this.pChannelName = name;
+                }
+                function Log() {
+                    this.pParentLog = this;
+                    this.pChannelName = 'ROOT';
+                }
+                var LOG = new Log();
+                LOG.log('-*- ../calculla/l/jsLogger.js loaded -*-');
+                function GEBI(id) {
+                    var rv = document.getElementById(id);
+                    if (rv == null) {
+                        LOG.log('[$$] FAIL: element "' + id + '" not found...');
+                    }
+                    return rv;
+                }
+                /*!OBF big thanx to Prototype JavaScript framework*/
+                Browser = {
+                    IE: !!(window.attachEvent && navigator.userAgent.indexOf('Opera') === -1),
+                    Opera: navigator.userAgent.indexOf('Opera') > -1,
+                    WebKit: navigator.userAgent.indexOf('AppleWebKit/') > -1,
+                    Gecko: navigator.userAgent.indexOf('Gecko') > -1 && navigator.userAgent.indexOf('KHTML') === -1,
+                    MobileSafari: !!navigator.userAgent.match(/Apple.*Mobile.*Safari/)
+                };
+                /*!OBF end of Prototype Framework */
+                function COPY(dst, src) {
+                    for (var idx in src) {
+                        dst[idx] = src[idx];
+                    }
+                }
+                function OBJECT_countFields(obj) {
+                    var rv = 0;
+                    if (obj != null) {
+                        for (var idx in obj) {
+                            rv++;
+                        }
+                    }
+                    return rv;
+                }
+                function FOLLOW_Linear(wanted, got, stepUp, stepDown) {
+                    var rv;
+                    if (wanted > got) {
+                        rv = got + stepUp;
+                        if (rv > wanted) {
+                            rv = wanted;
+                        }
+                    } else {
+                        rv = got - stepDown;
+                        if (rv < wanted) {
+                            rv = wanted;
+                        }
+                    }
+                    return rv;
+                }
+                var VIEWPORT = {
+                    getScrollOffsetX: function() {
+                        return window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft;
+                    },
+                    getScrollOffsetY: function() {
+                        return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+                    },
+                    getWidth: function() {
+                        if (Browser.WebKit && !document.evaluate) {
+                            return self.innerWidth;
+                        } else if (Browser.Opera && parseFloat(window.opera.version()) < 9.5) {
+                            return document.body.clientWidth;
+                        } else {
+                            return document.documentElement.clientWidth;
+                        }
+                    },
+                    getHeight: function() {
+                        if (Browser.WebKit && !document.evaluate) {
+                            return self.innerHeight;
+                        } else if (Browser.Opera && parseFloat(window.opera.version()) < 9.5) {
+                            return document.body.clientHeight;
+                        } else {
+                            return document.documentElement.clientHeight;
+                        }
+                    }
+                };
+                function CONVERT_UTFToHTMLTextOnly(txt) {
+                    if ((typeof txt) == 'function') {
+                        txt = String(txt);
+                    }
+                    if ((typeof txt) == 'string') {
+                        txt = txt.replace(/&/g, '&amp');
+                        txt = txt.replace(/  /g, '&nbsp; ');
+                        txt = txt.replace(/</g, '&lt;');
+                        txt = txt.replace(/>/g, '&gt;');
+                        txt = txt.replace(/\r/g, '<br/>');
+                        txt = txt.replace(/'/g, '&#039;');
+                        txt = txt.replace(/\"/g, '&quot;');
+                        txt = txt.replace(/"/g, '&quot;');
+                    }
+                    return txt;
+                }
+                function STRING_repeat(s, cnt) {
+                    var rv = '';
+                    var idx = 0;
+                    for (var idx = 0; idx < cnt; idx++) {
+                        rv += s;
+                    }
+                    return rv;
+                }
+                String.prototype.startsWith = function(s) {
+                    return this.indexOf(s) === 0;
+                }
+                ;
+                var MOUSE = {
+                    x: 0,
+                    y: 0
+                };
+                var TREES = {
+                    createTree: function() {
+                        var tree = {
+                            items: new Array(),
+                            onEach: function(fct, items) {
+                                var rv = null;
+                                if (!items)
+                                    items = this.items;
+                                for (var idx in items) {
+                                    if (items[idx].subItems) {
+                                        rv = this.onEach(fct, items[idx].subItems);
+                                    }
+                                    if (!rv) {
+                                        rv = fct(items[idx]);
+                                    }
+                                    if (rv) {
+                                        break;
+                                    }
+                                }
+                                return rv;
+                            }
+                        };
+                        return tree;
+                    },
+                    buildFromElements_prv: function(prefix, indexesSeparator, depth, maxDepth, parent) {
+                        var items = new Array();
+                        var idx = 0;
+                        do {
+                            var elem = document.getElementById(prefix + idx);
+                            if (elem) {
+                                var item = {
+                                    id: elem.id,
+                                    depth: depth,
+                                    parent: parent
+                                };
+                                if (depth < maxDepth) {
+                                    var subItems = this.buildFromElements_prv(item.id + indexesSeparator, indexesSeparator, depth + 1, maxDepth, item);
+                                    if (subItems.length > 0) {
+                                        item.subItems = subItems;
+                                    }
+                                }
+                                items.push(item);
+                            }
+                            idx++;
+                        } while (elem);
+                        return items;
+                    },
+                    buildFromElements: function(config) {
+                        var tree = this.createTree();
+                        tree.items = this.buildFromElements_prv(config.idPrefix, config.indexesSeparator, 0, config.maxDepth, null);
+                        return tree;
+                    }
+                };
+                var EVENTS = {
+                    globalEventListeners: new Array(),
+                    targetNull: '__unknown__',
+                    lastTickTime: (new Date()).getTime(),
+                    getEvent: function(event) {
+                        var e = null;
+                        var eIn = (!event) ? (window.event) : (event);
+                        if (eIn) {
+                            var t = null;
+                            if (eIn.target)
+                                t = eIn.target;
+                            else if (eIn.srcElement)
+                                t = eIn.srcElement;
+                            if (t) {
+                                if (t.nodeType == 3) {
+                                    t = t.parentNode;
+                                }
+                                e = {
+                                    fake: 0,
+                                    targetElement: t,
+                                    targetId: t.id,
+                                    type: eIn.type,
+                                    eventReturn: true,
+                                    originalEvent: eIn,
+                                    altKey: eIn.altKey,
+                                    ctrlKey: eIn.ctrlKey,
+                                    metaKey: eIn.metaKey,
+                                    shiftKey: eIn.shiftKey,
+                                    isRelatedTo: function(parentId) {
+                                        if (parentId == this.targetId) {
+                                            return true;
+                                        }
+                                        var parent = this.targetElement.parentNode;
+                                        while (parent) {
+                                            if (parent.id == parentId) {
+                                                return true;
+                                            }
+                                            parent = parent.parentNode;
+                                        }
+                                        return false;
+                                    },
+                                    findRelationToPrefix: function(prefix) {
+                                        if (this.targetId.startsWith(prefix)) {
+                                            return this.targetId;
+                                        }
+                                        var parent = this.targetElement.parentNode;
+                                        while (parent) {
+                                            if ((parent.id) && (parent.id.startsWith(prefix))) {
+                                                return parent.id;
+                                            }
+                                            parent = parent.parentNode;
+                                        }
+                                        return null;
+                                    },
+                                };
+                                if (!e.targetId) {
+                                    e.targetId = this.targetNull;
+                                }
+                                ;if (eIn.keyCode) {
+                                    e.keyCode = eIn.keyCode;
+                                } else if (eIn.which) {
+                                    e.keyCode = eIn.which;
+                                }
+                                if (e.keyCode) {
+                                    e.keyChar = String.fromCharCode(e.keyCode);
+                                }
+                                var docElement = document.documentElement;
+                                var abody = document.body || {
+                                    scrollLeft: 0,
+                                    scrollTop: 0
+                                };
+                                e.x = eIn.pageX || (eIn.clientX + (docElement.scrollLeft || abody.scrollLeft) - (docElement.clientLeft || 0));
+                                e.y = eIn.pageY || (eIn.clientY + (docElement.scrollTop || abody.scrollTop) - (docElement.clientTop || 0));
+                                if (e.type.startsWith('mouse')) {
+                                    MOUSE.x = e.x;
+                                    MOUSE.y = e.y;
+                                }
+                            }
+                        }
+                        return e;
+                    },
+                    createFake: function() {
+                        return {
+                            fake: 1,
+                            targetId: this.targetNull,
+                            x: null,
+                            y: null,
+                            isRelatedTo: function() {
+                                return 0;
+                            }
+                        };
+                    },
+                    addGlobalEventListener: function(listenerFct) {
+                        this.globalEventListeners.push(listenerFct);
+                    },
+                    dispatch: function(e) {
+                        for (var listenerIdx in EVENTS.globalEventListeners) {
+                            var listener = EVENTS.globalEventListeners[listenerIdx];
+                            if (typeof listener == 'function') {
+                                listener(e);
+                            } else {
+                                listener.globalEventListener(e);
+                            }
+                        }
+                    }
+                };
+                function EVENTS_domInputEvent(event) {
+                    event = EVENTS.getEvent(event);
+                    if (event) {
+                        EVENTS.dispatch(event);
+                        return event.eventReturn;
+                    }
+                }
+                function EVENTS_tick() {
+                    var now = (new Date()).getTime();
+                    var e = EVENTS.createFake();
+                    e.type = 'tick';
+                    e.nowMs = now;
+                    e.deltaMs = now - EVENTS.lastTickTime;
+                    EVENTS.dispatch(e);
+                    setTimeout("EVENTS_tick();", 20);
+                    EVENTS.lastTickTime = now;
+                }
+                setTimeout("EVENTS_tick();", 20);
+                function RADIO_getValue(elementIdPrefix, defaultValue) {
+                    var i = 0;
+                    var rv = defaultValue;
+                    while (GEBI(elementIdPrefix + i)) {
+                        if (GEBI(elementIdPrefix + i).checked == 1) {
+                            rv = GEBI(elementIdPrefix + i).value;
+                            break;
+                        }
+                        i++;
+                    }
+                    return rv;
+                }
+                function RADIO_setValue(elementIdPrefix, value) {
+                    var i = 0;
+                    var rv = 0;
+                    while (GEBI(elementIdPrefix + i)) {
+                        if (GEBI(elementIdPrefix + i).value == value) {
+                            GEBI(elementIdPrefix + i).checked = 1;
+                            rv = 1;
+                            break;
+                        }
+                        i++;
+                    }
+                    return rv;
+                }
+                function TEXTAREA_autoResizeVertical(id, min, max) {
+                    var currentRows = GEBI(id).rows;
+                    var inTxt = GEBI(id).value;
+                    var inTxtRows = 0;
+                    var i = 0;
+                    for (i = 0; i < inTxt.length; i++) {
+                        var inChar = inTxt.charCodeAt(i);
+                        if ((inChar == 13) || ((inChar == 10) && (inTxt.charCodeAt(i - 1) != 13))) {
+                            inTxtRows++;
+                        }
+                    }
+                    inTxtRows += 5;
+                    if (inTxtRows < min) {
+                        inTxtRows = min;
+                    }
+                    if (inTxtRows >= max) {
+                        inTxtRows = max;
+                    }
+                    if (currentRows != inTxtRows) {
+                        GEBI(id).rows = inTxtRows;
+                    }
+                }
+                var DISPLAY = {
+                    NONE: 0,
+                    BLOCK: 1,
+                    INLINE: 2
+                };
+                var DISPLAY2STYLE = ['none', 'block', 'inline'];
+                var ELEMENTS = {};
+                function DOBJ(argId) {
+                    if (!ELEMENTS[argId]) {
+                        ELEMENTS[argId] = {
+                            id: argId,
+                            display: 0,
+                            alpha: -1,
+                            setDisplay: function(newValue) {
+                                this.display = newValue;
+                                GEBI(this.id).style.display = DISPLAY2STYLE[newValue];
+                            },
+                            setAlpha: function(newValue) {
+                                if (newValue > 100)
+                                    newValue = 100;
+                                if (newValue < 0)
+                                    newValue = 0;
+                                this.alpha = newValue;
+                                var elem = GEBI(this.id);
+                                elem.style.opacity = newValue / 100;
+                                elem.style.filter = 'alpha(opacity=' + Math.floor(newValue) + ')';
+                            },
+                            getAlpha: function() {
+                                return this.alpha;
+                            },
+                            changeAlphaBy: function(d) {
+                                this.setAlpha(this.getAlpha() + d);
+                            },
+                            getSelection: function() {
+                                var elem = GEBI(this.id);
+                                var rv = {
+                                    start: elem.value.length,
+                                    end: elem.value.length,
+                                    length: 0,
+                                    text: ''
+                                };
+                                if (typeof (elem.selectionStart) != "undefined") {
+                                    rv = {
+                                        start: elem.selectionStart,
+                                        end: elem.selectionEnd,
+                                        length: elem.selectionEnd - elem.selectionStart
+                                    };
+                                } else if (typeof (document.selection) != "undefined") {
+                                    var range = document.selection.createRange();
+                                    var rangeWhole = range.duplicate();
+                                    if ((range) && (rangeWhole)) {
+                                        rangeWhole.moveToElementText(elem);
+                                        rangeWhole.setEndPoint('EndToEnd', range);
+                                        rv.start = rangeWhole.text.length - range.text.length;
+                                        rv.end = rv.start + range.text.length;
+                                        rv.length = range.text.length;
+                                    }
+                                }
+                                return rv;
+                            },
+                            insertAtSelection: function(s) {
+                                var elem = GEBI(this.id);
+                                var oS = elem.scrollTop;
+                                if (elem.setSelectionRange) {
+                                    var sS = elem.selectionStart;
+                                    var sE = elem.selectionEnd;
+                                    elem.value = elem.value.substring(0, sS) + "    " + elem.value.substr(sE);
+                                    elem.setSelectionRange(sS + 4, sS + 4);
+                                    elem.focus();
+                                } else if (elem.createTextRange) {
+                                    document.selection.createRange().text = "    ";
+                                }
+                                elem.scrollTop = oS;
+                            },
+                            setSelection: function(start, end) {
+                                var elem = GEBI(this.id);
+                                if (elem.setSelectionRange) {
+                                    elem.setSelectionRange(start, end);
+                                } else {
+                                    var range = elem.createTextRange();
+                                    range.collapse(true);
+                                    range.moveEnd('character', end - 1);
+                                    range.moveStart('character', start - 1);
+                                    range.select();
+                                }
+                            },
+                            isChildOf: function(parentId) {
+                                if (GEBI(this.id).parentNode.id == parentId) {
+                                    return true;
+                                }
+                                return false;
+                            },
+                            getCssLeft: function() {
+                                var left = $('#' + this.id).css('left');
+                                if (left == 'auto') {
+                                    left = 0;
+                                } else {
+                                    left = parseFloat(left);
+                                }
+                                return left;
+                            },
+                            getProperty: function(key) {
+                                switch (key) {
+                                case 'height':
+                                    return $('#' + this.id).height();
+                                    break;
+                                }
+                            },
+                            setProperty: function(key, value) {
+                                switch (key) {
+                                case 'height':
+                                    $('#' + this.id).css({
+                                        height: value
+                                    });
+                                    break;
+                                }
+                            },
+                            considerAsOriginalState: function() {
+                                this.originalWidth = $('#' + this.id).width();
+                                this.originalHeight = $('#' + this.id).height();
+                            }
+                        };
+                        ELEMENTS[argId].considerAsOriginalState();
+                    }
+                    return ELEMENTS[argId];
+                }
+                var ANIMATOR = {
+                    pending: new Array(),
+                    setAnimator: function(newSetup) {
+                        var foundAnimatorIdx = -1;
+                        for (animatorIdx in this.pending) {
+                            if ((this.pending[animatorIdx].actor == newSetup.actor) && (this.pending[animatorIdx].key == newSetup.key)) {
+                                foundAnimatorIdx = animatorIdx;
+                            }
+                        }
+                        if (foundAnimatorIdx == -1) {
+                            this.pending.push(new Object());
+                            foundAnimatorIdx = this.pending.length - 1;
+                        }
+                        this.pending[foundAnimatorIdx].actor = newSetup.actor;
+                        this.pending[foundAnimatorIdx].key = newSetup.key;
+                        this.pending[foundAnimatorIdx].value = newSetup.value;
+                        this.pending[foundAnimatorIdx].speed = newSetup.speed;
+                        this.checkTimer();
+                    },
+                    checkTimer: function() {},
+                    globalEventListener: function(e) {
+                        if (e.type == 'tick') {
+                            var toRemove = new Array();
+                            for (animatorIdx in this.pending) {
+                                var animee = this.pending[animatorIdx];
+                                var speed = 0;
+                                switch (animee.followType) {
+                                case 'linear':
+                                default:
+                                    if (animee.speed) {
+                                        speed = animee.speed;
+                                    } else {
+                                        speed = 0.1;
+                                    }
+                                    var value = animee.actor.getProperty(animee.key);
+                                    var step = speed * e.deltaMs;
+                                    var nValue = FOLLOW_Linear(animee.value, value, step, step);
+                                    if (nValue != value) {
+                                        animee.actor.setProperty(animee.key, nValue);
+                                    } else {
+                                        toRemove.push(animatorIdx);
+                                    }
+                                }
+                            }
+                            for (toRemoveIdx in toRemove) {
+                                this.pending.splice(toRemove[toRemoveIdx] - toRemoveIdx, 1);
+                            }
+                        }
+                    }
+                };
+                EVENTS.addGlobalEventListener(ANIMATOR);
+                var K = {
+                    updateProperty: function(o, key, newContent) {
+                        if (o[key] != newContent) {
+                            o[key] = newContent;
+                        }
+                    },
+                    countFields: function(o) {
+                        return Object.keys(o).length;
+                    },
+                    pointEquals: function(a, b) {
+                        return (a.x == b.x) && (a.y == b.y);
+                    },
+                    mouse: {
+                        x: 0,
+                        y: 0,
+                        getPoint: function() {
+                            return {
+                                x: this.x,
+                                y: this.y
+                            }
+                        }
+                    },
+                    rectNewZero: function() {
+                        return {
+                            l: 0,
+                            t: 0,
+                            w: 0,
+                            h: 0
+                        };
+                    },
+                    rectExpand: function(r, v) {
+                        var rv = {
+                            l: r.l - v,
+                            t: r.t - v,
+                            w: r.w + 2 * v,
+                            h: r.h + 2 * v
+                        };
+                        if (r.w < 0)
+                            r.w = 0;
+                        if (r.h < 0)
+                            r.h = 0;
+                        return rv;
+                    },
+                    rectEquals: function(a, b) {
+                        return (a.l == b.l) && (a.t == b.t) && (a.w == b.w) && (a.h == b.h);
+                    },
+                    rectCopy: function(a, b) {
+                        a.l = b.l;
+                        a.t = b.t;
+                        a.w = b.w;
+                        a.h = b.h;
+                    },
+                    rectClone: function(a) {
+                        return {
+                            l: a.l,
+                            t: a.t,
+                            w: a.w,
+                            h: a.h
+                        };
+                    },
+                    rectFitInto: function(a, b) {
+                        var r = {
+                            l: 0,
+                            t: 0,
+                            w: 0,
+                            h: 0
+                        };
+                        r.w = Math.min(a.w, b.w);
+                        r.h = Math.min(a.h, b.h);
+                        return r;
+                    },
+                    rectFitInto_keepAspect: function(a, b) {
+                        var r = {
+                            l: 0,
+                            t: 0,
+                            w: 0,
+                            h: 0
+                        };
+                        if ((a.w <= b.w) && (a.h <= b.h)) {
+                            r.w = a.w;
+                            r.h = a.h;
+                        } else {
+                            var wDiv = b.w / a.w;
+                            var hDiv = b.h / a.h;
+                            if (wDiv > hDiv) {
+                                r.w = a.w * hDiv;
+                                r.h = b.h;
+                            } else {
+                                r.w = b.w;
+                                r.h = a.h * wDiv;
+                            }
+                        }
+                        return r;
+                    },
+                    rectAlignToCenter: function(a, b) {
+                        var r = {
+                            w: a.w,
+                            h: a.h
+                        };
+                        r.l = (b.l + (b.w / 2)) - (a.w / 2);
+                        r.t = (b.t + (b.h / 2)) - (a.h / 2);
+                        return r;
+                    },
+                    historyPush: function(a, b, c) {
+                        if ((window.history) && (window.history.pushState))
+                            window.history.pushState(a, b, c);
+                    },
+                    historyReplace: function(a, b, c) {
+                        if ((window.history) && (window.history.pushState))
+                            window.history.replaceState(a, b, c);
+                    },
+                    Elem: {
+                        isElem: function(o) {
+                            return (typeof HTMLElement === "object" ? o instanceof HTMLElement : o && typeof o === "object" && o !== null && o.nodeType === 1 && typeof o.nodeName === "string");
+                        },
+                        isText: function(o) {
+                            return o instanceof Text;
+                        },
+                        getRelatedData: function(elem, dataKey) {
+                            dataKey = 'data-' + dataKey;
+                            while ((elem) && (elem.getAttribute)) {
+                                data = elem.getAttribute(dataKey);
+                                if (data) {
+                                    return data;
+                                }
+                                elem = elem.parentNode;
+                            }
+                            return null;
+                        },
+                        updateProperty: function(elem, key, newContent) {
+                            if (elem[key] != newContent) {
+                                elem[key] = newContent;
+                            }
+                        },
+                        isOnDocument: function(elem) {
+                            while ((elem) && (elem != document)) {
+                                elem = elem.parentNode;
+                            }
+                            return elem == document;
+                        },
+                    }
+                };
+                LOG.log('-*- ../calculla/l/jsCommon.js loaded -*-');
+                Atom.prototype = {
+                    init: function() {
+                        if (!this.cascadedPropertiesParent) {
+                            this.cascadedPropertiesParent = ATOMS.getRootOfCascadedProperties();
+                        }
+                    },
+                    propertyGet: function(key) {
+                        var rv = this.properties[key];
+                        if (!rv) {
+                            if (!this.cascadedPropertiesParent) {
+                                if (this == ATOMS.getRootOfCascadedProperties()) {
+                                    LOG.logError('[Atom] error: propertyGet fails ! cannot find a value for key ' + key + ' !');
+                                } else {
+                                    LOG.logError('[Atom] error: cascadedPropertiesParent cannot be null ! (looking for key ' + key + ')');
+                                }
+                            }
+                            rv = this.cascadedPropertiesParent.propertyGet(key);
+                        }
+                        return rv;
+                    },
+                    propertyGetForWrite: function(key) {
+                        return this.properties[key];
+                    },
+                    ownedPropertySet: function(key, valueAtom) {
+                        if (this.properties[key] != valueAtom) {
+                            this.properties[key] = valueAtom;
+                            this.handleSignal(key, 'propertyChanged');
+                        }
+                    },
+                    ownedPropertyGet: function(key) {
+                        return this.properties[key];
+                    },
+                    ownedPropertyDelete: function(key) {
+                        this.properties[key] = null;
+                        this.handleSignal(key, 'propertyChanged');
+                    },
+                    setCasadedPropertiesParent: function(parent) {},
+                    getCasadedPropertiesParent: function() {},
+                    catchSignal: function(key, signal) {
+                        if (!this.signalsToCatch[key]) {
+                            this.signalsToCatch[key] = new Array();
+                        }
+                        this.signalsToCatch[key].push(signal);
+                        this.propertyGet(key).addSignalListener(signal, this, key);
+                    },
+                    addSignalListener: function(signal, signalListener, userData) {
+                        var listener = new Object();
+                        listener.signal = signal;
+                        listener.signalListener = signalListener;
+                        listener.userData = userData;
+                        this.signalsToDispatch.push(listener);
+                    },
+                    signal: function(signal) {
+                        for (idx in this.signalsToDispatch) {
+                            if (this.signalsToDispatch[idx].signal == signal) {
+                                if (!this.signalsToDispatch[idx].signalListener) {
+                                    LOG.log("[ATOM] got empty signal listener");
+                                }
+                                if (!this.signalsToDispatch[idx].signalListener.signalListener) {
+                                    LOG.log("[ATOM] got signal listener without signalListener() function");
+                                }
+                                this.signalsToDispatch[idx].signalListener.signalListener(this, signal, this.signalsToDispatch[idx].userData);
+                            }
+                        }
+                    },
+                    handleSignal: function(key, signal) {},
+                    signalListener: function(signalingAtom, signal, userData) {
+                        this.handleSignal(userData, signal);
+                    }
+                };
+                function Atom() {
+                    if (!this.clazz) {
+                        this.clazz = 'Atom';
+                    }
+                    this.properties = new Object(),
+                    this.signalsToCatch = new Object(),
+                    this.signalsToDispatch = new Array(),
+                    this.cascadedPropertiesParent = null;
+                    if (ATOMS) {
+                        ATOMS.atomRegister(this);
+                    }
+                }
+                LOG.log('-*- ../calculla/l/atoms/jsAtom.js loaded -*-');
+                AtomCascadedProperties.prototype = new Atom;
+                function AtomCascadedProperties() {}
+                AtomStack.prototype = {
+                    classRegister: function(className, classConstructor) {
+                        if (this.classess[className] == null) {
+                            this.classess[className] = classConstructor;
+                        } else {
+                            LOG.logError('[AtomStack_classRegister] error: class ' + className + ' already registered !');
+                        }
+                    },
+                    dumpClassess: function() {
+                        LOG.logSub('<table class="jsLog"><tbody><tr><td colspan="2">AtomStack defines ' + OBJECT_countFields(this.classess) + ' classess</td></tr>');
+                        for (var idx in this.classess) {
+                            LOG.logSub('<tr><td><b>' + idx + '</b></td><td>');
+                            LOG.logTextAndObject(idx, this.classess[idx]);
+                            LOG.logSub('</td></tr>');
+                        }
+                        LOG.log('</tbody></table>');
+                    },
+                    atomRegister: function(atom) {
+                        this.queueToInit.push(atom);
+                    },
+                    atomCreate: function(atomDefinition) {
+                        if ((typeof atomDefinition['class']) == 'string') {
+                            if ((typeof atomDefinition['id']) == 'string') {
+                                var theClass = this.classess[atomDefinition['class']];
+                                if (theClass != null) {
+                                    var newElement = new Object();
+                                    COPY(newElement, this.classess[theClass]);
+                                    COPY(newElement, atomDefinition);
+                                    newElement.init();
+                                } else {
+                                    LOG.logError('[AtomStack_createInput] error: given class not found in class definitions !');
+                                }
+                            } else {
+                                LOG.logError('[AtomStack_createInput] error: id not found in element definition !');
+                            }
+                        } else {
+                            LOG.logError('[AtomStack_createInput] error: class name not found in element definition !');
+                        }
+                    },
+                    doInitializations: function() {
+                        for (idx in this.queueToInit) {
+                            this.queueToInit[idx].init();
+                        }
+                        this.queueToInit = new Array();
+                    },
+                    getRootOfCascadedProperties: function() {
+                        return this.cascadedPropertiesRoot;
+                    }
+                };
+                function AtomStack() {
+                    this.classess = new Object();
+                    this.atoms = new Object();
+                    this.globalEventListeners = new Array();
+                    this.cascadedPropertiesRoot = new AtomCascadedProperties();
+                    this.queueToInit = new Array();
+                }
+                var ATOMS = new AtomStack();
+                LOG.log('-*- ../calculla/l/jsAtomStack.js loaded -*-');
+                AtomInt.prototype = new Object();
+                COPY(AtomInt.prototype, Atom.prototype);
+                function AtomInt(a) {
+                    this.clazz = 'AtomInt';
+                    Atom.call(this);
+                    if (a) {
+                        this.theInt = a;
+                    } else {
+                        this.theInt = 0;
+                    }
+                }
+                AtomInt.prototype.init = function() {
+                    Atom.prototype.init.call(this);
+                }
+                ;
+                AtomInt.prototype.setInt = function(newInt) {
+                    if (this.theInt != newInt) {
+                        this.theInt = newInt;
+                        this.signal('changed');
+                    }
+                }
+                ;
+                AtomInt.prototype.getInt = function() {
+                    return this.theInt;
+                }
+                ;
+                AtomInt.prototype.getString = AtomInt.prototype.getInt;
+                LOG.log('-*- ../calculla/l/atoms/jsAtomInt.js loaded -*-');
+                AtomString.prototype = new Object();
+                COPY(AtomString.prototype, Atom.prototype);
+                function AtomString() {
+                    this.clazz = 'AtomString';
+                    Atom.call(this);
+                    this.theString = '';
+                }
+                AtomString.prototype.init = function() {
+                    Atom.prototype.init.call(this);
+                }
+                ;
+                AtomString.prototype.setString = function(newString) {
+                    if (this.theString != newString) {
+                        this.theString = newString;
+                        this.signal('changed');
+                    }
+                }
+                ;
+                AtomString.prototype.getString = function() {
+                    return this.theString;
+                }
+                ;
+                var atomRootText = new AtomString();
+                atomRootText.setString('theText');
+                ATOMS.getRootOfCascadedProperties().ownedPropertySet('text', atomRootText);
+                LOG.log('-*- ../calculla/l/atoms/jsAtomString.js loaded -*-');
+                AtomValidator.prototype = new Object();
+                COPY(AtomValidator.prototype, Atom.prototype);
+                function AtomValidator() {
+                    this.clazz = 'AtomValidator';
+                    Atom.call(this);
+                }
+                AtomValidator.prototype.init = function() {
+                    Atom.prototype.init.call(this);
+                    this.catchSignal('input', 'changed');
+                    this.apply();
+                }
+                ;
+                AtomValidator.prototype.handleSignal = function(key, signal) {
+                    if (key == 'input') {
+                        this.apply();
+                    }
+                }
+                ;
+                AtomValidator.prototype.apply = function() {
+                    var s = this.propertyGet('input').getString();
+                    if (this.propertyGet('isToHTMLConversion').getInt()) {
+                        GEBI(this.propertyGet('htmlId')).innerHTML = CONVERT_UTFToHTMLTextOnly(s);
+                    } else {
+                        GEBI(this.propertyGet('htmlId')).innerHTML = s;
+                    }
+                }
+                ;
+                LOG.log('-*- ../calculla/l/atoms/jsAtomValidator.js loaded -*-');
+                //-->
+            </script>
+            <div id="all">
+
+                </div>
+                    <div id="body">
+                        <div class="column_main">
+                            <div class="column_main_calc">
+
+                                <script language="javascript" type="text/javascript">
+                                    // Javascript
+                                    LOG.log('-*- ../calculla/a/jsLang_en.js loading -*-');
+                                    var calcCommon_txtWrongInputNumber = 'Invalid number!';
+                                    var calcCommon_txtWrongInputUnit = 'Please select unit!';
+                                    var calcCommon_txtConvertedNumberIs = 'is equal to';
+                                    var calcCommon_resultLockedTxt = 'frozen';
+                                    var calcCommon_resultUnlockedTxt = 'calculate here';
+                                    var openCloser_showTxt = 'Show';
+                                    var openCloser_hideTxt = 'Hide';
+                                    var LANG = 'en';
+                                    var monthTxt = new Array('January','February','March','April','May','June','July','August','September','October','November','December');
+                                    LOG.logOkFail('-*- ../calculla/a/jsLang_en.js loaded -*-', 1);
+                                    //-->
+                                </script>
+                                <script language="javascript" type="text/javascript">
+                                    // Javascript
+                                    LOG.log('-*- ../calculla/a/calc/jsCalcullaCommon.js loading -*-');
+                                    C = {};
+                                    function NUMBER_floorToDecimals(inValue, decimals) {
+                                        if (decimals == 0) {
+                                            return Math.floor(inValue);
+                                        } else {
+                                            var p = Math.pow(10, decimals);
+                                            return Math.floor(p * inValue) / p;
+                                        }
+                                    }
+                                    function NUMBER_roundToDecimals(inValue, decimals) {
+                                        if (decimals == 0) {
+                                            return Math.round(inValue);
+                                        } else {
+                                            var p = Math.pow(10, decimals);
+                                            return Math.round(p * inValue) / p;
+                                        }
+                                    }
+                                    function NUMBER_roundForPresentation(inValue, inExp, inWholes, inDecimals, inThousandSep, inThousandDec, inPreferNoExponent) {
+                                        outValue = inValue * Math.pow(10, inExp);
+                                        outValueRounded = NUMBER_roundToDecimals(outValue, inDecimals);
+                                        if (inValue == 0) {
+                                            out = 0;
+                                        } else {
+                                            var isMinus = (outValue < 0) ? 1 : 0;
+                                            var valAbs = Math.abs(outValue);
+                                            var exp = 0;
+                                            while (valAbs >= 10) {
+                                                valAbs = 0.1 * valAbs;
+                                                exp++;
+                                            }
+                                            while (valAbs < 1) {
+                                                valAbs = 10 * valAbs;
+                                                exp -= 1;
+                                            }
+                                            if (NUMBER_roundToDecimals(valAbs, inDecimals) >= 10) {
+                                                valAbs = 0.1 * valAbs;
+                                                exp++;
+                                            }
+                                            if (exp > -inDecimals) {
+                                                var dec = 11 - exp;
+                                                if (dec < 0)
+                                                    dec = 0;
+                                                if (dec > inDecimals)
+                                                    dec = inDecimals;
+                                                outValueRounded = NUMBER_roundToDecimals(outValue, dec);
+                                            } else {
+                                                outValueRounded = 'e';
+                                            }
+                                            var outStr = '' + outValueRounded;
+                                            var isDot = (outStr.indexOf('.') >= 0) ? 1 : 0;
+                                            if ((inPreferNoExponent) && (outStr.indexOf('e') == -1) && (outStr.length < (13 + isDot + isMinus))) {
+                                                out = outValueRounded;
+                                            } else {
+                                                out = (isMinus) ? '-' : '';
+                                                out = out + NUMBER_roundToDecimals(valAbs, inDecimals) + '\u00D7' + '10<sup>' + exp + '</sup>';
+                                            }
+                                        }
+                                        return out;
+                                    }
+                                    function NUMBER_roundForPresentationDefault(inValue) {
+                                        return NUMBER_roundForPresentation(inValue, 0, 12, 9, ' ', '.', 1);
+                                    }
+                                    function NUMBER_roundForInputDefault(inValue) {
+                                        return NUMBER_roundToDecimals(inValue, 10);
+                                    }
+                                    function NUMBER_isDecimalFloat(txt) {
+                                        var validChars = '0123456789';
+                                        var isNumber = 1;
+                                        var onlyOneDot = 1;
+                                        var len = txt.length;
+                                        if (len == 0) {
+                                            isNumber = 0;
+                                        }
+                                        for (var i = 0; (i < len) && (isNumber); i++) {
+                                            var c = txt.charAt(i);
+                                            if (c == '.') {
+                                                if (onlyOneDot) {
+                                                    onlyOneDot = 0;
+                                                } else {
+                                                    isNumber = 0;
+                                                }
+                                            } else if (c == '-') {
+                                                if (i > 0) {
+                                                    isNumber = 0;
+                                                }
+                                            } else if (validChars.indexOf(c) == -1) {
+                                                isNumber = 0;
+                                            } else {
+                                                onlyOneMinus = 0;
+                                            }
+                                        }
+                                        return isNumber;
+                                    }
+                                    function NUMBER_isDecimalInteger(txt) {
+                                        var validChars = '0123456789';
+                                        var isNumber = 1;
+                                        var len = txt.length;
+                                        if (len == 0) {
+                                            isNumber = 0;
+                                        }
+                                        for (var i = 0; (i < len) && (isNumber); i++) {
+                                            var c = txt.charAt(i);
+                                            if (c == '-') {
+                                                if (i > 0) {
+                                                    isNumber = 0;
+                                                }
+                                            } else if (validChars.indexOf(c) == -1) {
+                                                isNumber = 0;
+                                            } else {
+                                                onlyOneMinus = 0;
+                                            }
+                                        }
+                                        return isNumber;
+                                    }
+                                    function NUMBER_parseInput(inValue) {
+                                        if (typeof inValue == "string") {
+                                            var rv = inValue.replace(',', '.');
+                                            rv = rv.replace(/ /g, '');
+                                            if (rv == '-') {
+                                                rv = '';
+                                            } else if (NUMBER_isDecimalFloat(rv)) {
+                                                rv = parseFloat(rv);
+                                            } else {
+                                                rv = '';
+                                            }
+                                        } else if (typeof inValue == "number") {
+                                            rv = inValue;
+                                        }
+                                        return rv;
+                                    }
+                                    function NUMBER_parseInputIfNotEmpty(inValue, defaultInt) {
+                                        if (typeof inValue == "string") {
+                                            var trimmed = inValue.replace(/ /g, '');
+                                            if (trimmed == '') {
+                                                return defaultInt;
+                                            }
+                                        }
+                                        return NUMBER_parseInput(inValue);
+                                    }
+                                    function NUMBER_isParsedInputValid(parsedInValue) {
+                                        if (typeof parsedInValue == "string") {
+                                            return 0;
+                                        }
+                                        return 1;
+                                    }
+                                    function NUMBER_eventKeyIsForFloatNumber(e) {
+                                        var keyCode = 0;
+                                        if (window.event) {
+                                            keyCode = window.event.keyCode;
+                                        } else if (e.which) {
+                                            keyCode = e.which;
+                                        }
+                                        if (keyCode >= 48 && keyCode <= 57)
+                                            return true;
+                                        var s = String.fromCharCode(keyCode);
+                                        if ((s == '.') || (s == ',') || (s == '-'))
+                                            return true;
+                                        return false;
+                                    }
+                                    function MONEY_floorToGroszy(inValue) {
+                                        return Math.floor(inValue * 100) / 100;
+                                    }
+                                    function MONEY_ceilToGroszy(inValue) {
+                                        return Math.ceil(inValue * 100) / 100;
+                                    }
+                                    function MONEY_roundTo10Groszy(inValue) {
+                                        return Math.floor((inValue * 10) + 0.5) / 10;
+                                    }
+                                    function MONEY_roundToGroszy(inValue) {
+                                        return Math.floor((inValue * 100) + 0.5) / 100;
+                                    }
+                                    function MONEY_roundToZloty(inValue) {
+                                        return Math.floor(inValue + 0.5);
+                                    }
+                                    function MONEY_ceilToZloty(inValue) {
+                                        return Math.ceil(inValue);
+                                    }
+                                    function MONEY_toString100Groszy(inValue) {
+                                        return inValue.toFixed(2);
+                                    }
+                                    function CENTS_numberToCents(inValue) {
+                                        return Math.floor(inValue * 100);
+                                    }
+                                    function CENTS_centsToString(inValue) {
+                                        return (Math.floor(inValue) / 100).toFixed(2);
+                                    }
+                                    function DAYS_inMonth(y, m) {
+                                        if (m == 1)
+                                            return ((y & 3) == 0) ? 29 : 28;
+                                        if ((m == 3) || (m == 5) || (m == 8) || (m == 10))
+                                            return 30;
+                                        return 31;
+                                    }
+                                    function LOCK_setLocked(id) {
+                                        document.getElementById(id).innerHTML = calcCommon_resultLockedTxt;
+                                        document.getElementById(id + 'Span').className = 'lock_frozen';
+                                    }
+                                    function LOCK_setUnlocked(id) {
+                                        document.getElementById(id).innerHTML = calcCommon_resultUnlockedTxt;
+                                        document.getElementById(id + 'Span').className = 'lock_unfrozen';
+                                    }
+                                    function LOCKS_create() {
+                                        var locksObj = new Object();
+                                        locksObj.groups = new Array();
+                                        locksObj.unlockedIdx = -1;
+                                        return locksObj;
+                                    }
+                                    function LOCKS_setGroups(locksObj, groupsArray) {
+                                        locksObj.groups = groupsArray;
+                                    }
+                                    function LOCKS_addGroup(locksObj, groupIdsArray) {
+                                        locksObj.groups.push(groupIdsArray);
+                                    }
+                                    function LOCKS_findIncludingGroup(locksObj, id) {
+                                        var rv = -1;
+                                        for (var groupIdx in locksObj.groups) {
+                                            var group = locksObj.groups[groupIdx];
+                                            for (var itemIdx in group) {
+                                                if (group[itemIdx] == id) {
+                                                    rv = groupIdx;
+                                                }
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function LOCKS_unlock(locksObj, id) {
+                                        var includingGroupIdx = LOCKS_findIncludingGroup(locksObj, id);
+                                        var includingGroup = locksObj.groups[includingGroupIdx];
+                                        for (groupIdx in locksObj.groups) {
+                                            var group = locksObj.groups[groupIdx];
+                                            for (itemIdx in group) {
+                                                if (groupIdx == includingGroupIdx) {
+                                                    LOCK_setUnlocked(locksObj.groups[groupIdx][itemIdx]);
+                                                } else {
+                                                    LOCK_setLocked(locksObj.groups[groupIdx][itemIdx]);
+                                                }
+                                            }
+                                        }
+                                        locksObj.unlockedIdx = includingGroupIdx;
+                                    }
+                                    function LOCKS_lock(locksObj, id) {
+                                        var toLockGroupIdx = LOCKS_findIncludingGroup(locksObj, id);
+                                        var toUnlockGroupIdx;
+                                        if ((toLockGroupIdx == locksObj.unlockedIdx) || (locksObj.unlockedIdx == -1)) {
+                                            if (toLockGroupIdx == 0) {
+                                                LOCKS_unlock(locksObj, locksObj.groups[1][0]);
+                                            } else {
+                                                LOCKS_unlock(locksObj, locksObj.groups[0][0]);
+                                            }
+                                        }
+                                    }
+                                    function LOCKS_getUnlockedGroupId(locksObj) {
+                                        if (locksObj.unlockedIdx >= 0) {
+                                            return locksObj.groups[locksObj.unlockedIdx][0];
+                                        } else {
+                                            return 0;
+                                        }
+                                    }
+                                    function TEXT_convertLBToBR(txt) {
+                                        txt = txt.replace(/\n/g, '<br/>');
+                                        txt = txt.replace(/ /g, '&nbsp;');
+                                        return txt;
+                                    }
+                                    function TEXTAREA_autoResizeVertical(id, min, max) {
+                                        var currentRows = document.getElementById(id).rows;
+                                        var inTxt = document.getElementById(id).value;
+                                        var inTxtRows = 0;
+                                        var i = 0;
+                                        for (i = 0; i < inTxt.length; i++) {
+                                            var inChar = inTxt.charCodeAt(i);
+                                            if ((inChar == 13) || ((inChar == 10) && (inTxt.charCodeAt(i - 1) != 13))) {
+                                                inTxtRows++;
+                                            }
+                                        }
+                                        if (inTxtRows < min) {
+                                            inTxtRows = min;
+                                        }
+                                        if (inTxtRows >= max) {
+                                            inTxtRows = max;
+                                        }
+                                        if ((currentRows < inTxtRows + 1) || (currentRows > inTxtRows - 5)) {
+                                            document.getElementById(id).rows = inTxtRows + 2;
+                                        }
+                                    }
+                                    function INPUT_getDateValue(elementIdPrefix) {
+                                        var rv = new Object();
+                                        var year = GEBI(elementIdPrefix + 'Year').value.trim();
+                                        var month = GEBI(elementIdPrefix + 'Month').value.trim();
+                                        var day = GEBI(elementIdPrefix + 'Day').value.trim();
+                                        if ((!NUMBER_isDecimalInteger(year)) || (parseInt(year) <= 0) || (parseInt(year) > 100000) || (year == '-')) {
+                                            rv.yearError = true;
+                                        }
+                                        if (!NUMBER_isDecimalInteger(month)) {
+                                            rv.monthError = true;
+                                        }
+                                        if (!NUMBER_isDecimalInteger(day)) {
+                                            rv.dayError = true;
+                                        }
+                                        rv.error = rv.yearError | rv.monthError | rv.dayError;
+                                        rv.year = parseInt(year);
+                                        rv.month = parseInt(month) + 1;
+                                        rv.day = parseInt(day) + 1;
+                                        var bcElem = GEBI(elementIdPrefix + 'BC');
+                                        if (bcElem != null) {
+                                            if (parseInt(bcElem.value)) {
+                                                rv.year = -Math.abs(rv.year);
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function INPUT_getHMS(elementIdPrefix) {
+                                        var rv = new Object();
+                                        rv.hours = GEBI(elementIdPrefix + 'Hours').value.trim();
+                                        rv.minutes = GEBI(elementIdPrefix + 'Minutes').value.trim();
+                                        rv.seconds = GEBI(elementIdPrefix + 'Seconds').value.trim();
+                                        return rv;
+                                    }
+                                    function INPUT_getYMDHMS(elementIdPrefix) {
+                                        var rv = new Object();
+                                        var date = INPUT_getDateValue(elementIdPrefix);
+                                        var time = INPUT_getHMS(elementIdPrefix);
+                                        rv.year = date.year;
+                                        rv.month = date.month;
+                                        rv.day = date.day;
+                                        rv.hours = time.hours;
+                                        rv.minutes = time.minutes;
+                                        rv.seconds = time.seconds;
+                                        return rv;
+                                    }
+                                    function INPUT_getRadioValue(elementIdPrefix, defaultValue) {
+                                        var i = 0;
+                                        var rv = defaultValue;
+                                        while (document.getElementById(elementIdPrefix + i)) {
+                                            if (document.getElementById(elementIdPrefix + i).checked == 1) {
+                                                rv = document.getElementById(elementIdPrefix + i).value;
+                                                break;
+                                            }
+                                            i++;
+                                        }
+                                        return rv;
+                                    }
+                                    function INPUT_setRadioValue(elementIdPrefix, value) {
+                                        var i = 0;
+                                        var rv = 0;
+                                        while (document.getElementById(elementIdPrefix + i)) {
+                                            if (document.getElementById(elementIdPrefix + i).value == value) {
+                                                document.getElementById(elementIdPrefix + i).checked = 1;
+                                                rv = 1;
+                                                break;
+                                            }
+                                            i++;
+                                        }
+                                        return rv;
+                                    }
+                                    function INPUT_getWeekDayCheckBoxesFlag(elementIdPrefix) {
+                                        var rv = 0;
+                                        for (var i = 0; i < 7; i++) {
+                                            var element = GEBI(elementIdPrefix + '_' + i);
+                                            if (element && element.checked) {
+                                                rv |= (1 << i);
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function OPENCLOSER_turn(id, mode) {
+                                        var buttonObj = document.getElementById(id + '_closerButton');
+                                        var contentObj = document.getElementById(id + '_closerContent');
+                                        if ((mode == -1) || ((mode == 0) && (contentObj.style.display != 'none'))) {
+                                            buttonObj.innerHTML = openCloser_showTxt;
+                                            contentObj.style.display = 'none';
+                                        } else {
+                                            buttonObj.innerHTML = openCloser_hideTxt;
+                                            contentObj.style.display = 'block';
+                                        }
+                                    }
+                                    function TABLE_generateOpen(tableClass) {
+                                        var rv = 'error';
+                                        switch (tableClass) {
+                                        case 'tableLayout':
+                                            rv = '<table class="silent" cellspacing="0" cellpadding="0"><tbody>';
+                                            break;
+                                        case 'tableLayoutCentered':
+                                            rv = '<table class="silent" cellspacing="0" cellpadding="0" style="margin:0 auto"><tbody>';
+                                            break;
+                                        case 'mathFraction':
+                                            rv = '<table class="mathFraction" cellspacing="0" cellpadding="1"><tbody>';
+                                            break;
+                                        case 'tableCalc':
+                                            rv = '<table class="calcTable" cellspacing="1" cellpadding="0"><tbody>';
+                                            break;
+                                        case 'tableResult':
+                                            rv = '<table class="tableResult" cellspacing="1" cellpadding="1"><tbody>';
+                                            break;
+                                        }
+                                        return rv;
+                                    }
+                                    function TABLE_generateClose() {
+                                        return '</tbody></table>';
+                                    }
+                                    function UTIL_generateFraction(wholePart, numerator, denominator, sign, useBrackets) {
+                                        var rv;
+                                        var rvSign = '';
+                                        if ((typeof sign !== "undefined") && (sign < 0) && ((parseInt(numerator) > 0) || (wholePart > 0))) {
+                                            rvSign = '-';
+                                        }
+                                        if ((numerator != '') && (denominator != '')) {
+                                            var rvWholes = '';
+                                            if (wholePart != '') {
+                                                rvWholes = '<td rowspan="2">' + rvSign + wholePart + '</td>';
+                                            } else if (rvSign != '') {
+                                                rvWholes = '<td rowspan="2">' + rvSign + '</td>';
+                                            }
+                                            rv = TABLE_generateOpen('mathFraction') + '<tr>' + rvWholes + '<td>' + numerator + '</td></tr><tr><td style="border-top:#000000 1px solid">' + denominator + '</td></tr>' + TABLE_generateClose();
+                                            if ((useBrackets == true) && (rvSign == '-')) {
+                                                rv = '<table><tr><td><font style="font-size: 16pt;">(</font></td>' + '<td>' + rv + '</td>' + '<td><font style="font-size: 16pt;">)</font></td></tr></table>';
+                                            }
+                                        } else {
+                                            rv = rvSign + wholePart;
+                                            if ((useBrackets == true) && (rvSign == '-')) {
+                                                rv = '(' + rv + ')';
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function UTIL_generateFractionNiced(wholePart, numerator, denominator) {
+                                        return UTIL_generateFraction(wholePart, numerator, denominator);
+                                    }
+                                    function UTIL_generateWeakComment(comment) {
+                                        if (comment.length > 0) {
+                                            return '<span class="weakComment">' + comment + '</span>';
+                                        } else {
+                                            return '';
+                                        }
+                                    }
+                                    LOG.logOkFail('-*- ../calculla/a/calc/jsCalcullaCommon.js loaded -*-', 1);
+                                    //-->
+                                </script>
+                                <script language="javascript" type="text/javascript">
+                                    // Javascript
+                                    LOG.log('-*- ../calculla/a/calc/jsConverter.js loading -*-');
+                                    var CONVERTER_STATUS_OK = 0;
+                                    var CONVERTER_STATUS_ERROR = 2;
+                                    var CONVERTER_STATUS_INPUT_INVALID = 4;
+                                    var CONVERTER_STATUS_IN_UNIT_NOT_FOUND = 8;
+                                    var CONVERTER_STATUS_OUT_UNIT_NOT_FOUND = 16;
+                                    function ConverterObject() {
+                                        this.inValue = '';
+                                        this.inUnitName = '';
+                                        this.outUnitName = '';
+                                        this.inUnitIdx = -1;
+                                        this.inUnitDescription = '';
+                                        this.outUnitIdx = -1;
+                                        this.outDecimals = 9;
+                                        this.outValueFloat = 0;
+                                        this.outValueString = '';
+                                    }
+                                    function converter_setInValue(newInValue) {
+                                        this.inValue = NUMBER_parseInput(newInValue);
+                                    }
+                                    function converter_setOutDecimals(newOutDecimals) {
+                                        this.outDecimals = NUMBER_parseInput(newOutDecimals);
+                                        if (this.outDecimals < 0)
+                                            this.outDecimals = 0;
+                                        if (this.outDecimals > 9)
+                                            this.outDecimals = 9;
+                                    }
+                                    function converter_getStatus() {
+                                        var rv = CONVERTER_STATUS_OK;
+                                        if ((!NUMBER_isParsedInputValid(this.inValue))) {
+                                            rv = rv + CONVERTER_STATUS_INPUT_INVALID;
+                                        }
+                                        if ((this.inUnitIdx == -1) || (this.inUnitName != this.unitNames[this.inUnitIdx])) {
+                                            rv = rv + CONVERTER_STATUS_IN_UNIT_NOT_FOUND;
+                                        }
+                                        if ((this.outUnitIdx == -1) || (this.outUnitName != this.unitNames[this.outUnitIdx])) {
+                                            rv = rv + CONVERTER_STATUS_OUT_UNIT_NOT_FOUND;
+                                        }
+                                        return rv;
+                                    }
+                                    function converter_getStatusDefaultText() {
+                                        var status = this.getStatus();
+                                    }
+                                    function converter_isUnitNameValid(unitName) {
+                                        rv = 0;
+                                        for (var idx in this.unitNames) {
+                                            if (unitName == this.unitNames[idx]) {
+                                                rv = 1;
+                                                break;
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function converter_getUnitDescriptionByName(unitName) {
+                                        rv = '';
+                                        for (var idx in this.unitNames) {
+                                            if (unitName == this.unitNames[idx]) {
+                                                rv = this.unitDescriptions[idx];
+                                                break;
+                                            }
+                                        }
+                                        return rv;
+                                    }
+                                    function converter_setInUnitByName(newInUnitName) {
+                                        if (this.inUnitName != newInUnitName) {
+                                            this.inUnitIdx = -1;
+                                            for (var idx in this.unitNames) {
+                                                if (newInUnitName == this.unitNames[idx]) {
+                                                    this.inUnitIdx = idx;
+                                                    this.inUnitDescription = this.unitDescriptions[this.inUnitIdx];
+                                                    this.inFactorBase = this.unitFactorsBase[idx];
+                                                    this.inFactorExp = this.unitFactorsExp[idx];
+                                                    break;
+                                                }
+                                            }
+                                            if (this.inUnitIdx == -1) {
+                                                this.inUnitName = '';
+                                            } else {
+                                                this.inUnitName = newInUnitName;
+                                            }
+                                        }
+                                    }
+                                    function converter_setOutUnitByName(newOutUnitName) {
+                                        if (this.outUnitName != newOutUnitName) {
+                                            this.outUnitIdx = -1;
+                                            for (var idx in this.unitNames) {
+                                                if (newOutUnitName == this.unitNames[idx]) {
+                                                    this.outUnitIdx = idx;
+                                                    this.outUnitDescription = this.unitDescriptions[this.inUnitIdx];
+                                                    this.outFactorBase = this.unitFactorsBase[idx];
+                                                    this.outFactorExp = this.unitFactorsExp[idx];
+                                                    break;
+                                                }
+                                            }
+                                            if (this.outUnitIdx == -1) {
+                                                this.outUnitName = '';
+                                            } else {
+                                                this.outUnitName = newOutUnitName;
+                                            }
+                                        }
+                                    }
+                                    function converter_setOutUnitByIdx(newOutUnitIdx) {
+                                        if (this.outUnitIdx != newOutUnitIdx) {
+                                            this.outUnitIdx = newOutUnitIdx;
+                                            this.outUnitName = this.unitNames[newOutUnitIdx];
+                                        }
+                                    }
+                                    function converter_convert() {
+                                        if ((this.getStatus() == CONVERTER_STATUS_OK) && (this.unitFactorsBase[this.outUnitIdx] != 0)) {
+                                            var outValue = (this.inValue * this.inFactorBase / this.unitFactorsBase[this.outUnitIdx]);
+                                            this.outValueFloat = outValue * Math.pow(10, this.inFactorExp - this.unitFactorsExp[this.outUnitIdx]);
+                                            this.outValueText = NUMBER_roundForPresentation(outValue, this.inFactorExp - this.unitFactorsExp[this.outUnitIdx], 12, this.outDecimals, ' ', '.', 1);
+                                        } else {
+                                            this.outValueFloat = 0;
+                                            this.outValueText = '?';
+                                        }
+                                    }
+                                    function converter_onValueChange() {
+                                        this.setInValue(document.getElementById(this.dom_prefix + "_InValue").value);
+                                        this.setInUnitByName(document.getElementById(this.dom_prefix + "_InUnit").value);
+                                        this.setOutDecimals(document.getElementById(this.dom_prefix + "_InDecimals").value);
+                                        var status = this.getStatus();
+                                        var inputDescription = '';
+                                        if (status & CONVERTER_STATUS_IN_UNIT_NOT_FOUND) {
+                                            inputDescription = calcCommon_txtWrongInputUnit;
+                                        } else if (status & CONVERTER_STATUS_INPUT_INVALID) {
+                                            inputDescription = calcCommon_txtWrongInputNumber;
+                                        } else {
+                                            inputDescription = NUMBER_roundForPresentation(this.inValue, 0, 12, 9, ' ', '.', 1) + ' (' + this.inUnitDescription + ') ' + calcCommon_txtConvertedNumberIs + ':';
+                                        }
+                                        document.getElementById(this.dom_prefix + "_InputDescription").innerHTML = inputDescription;
+                                        for (var idx in this.unitNames) {
+                                            this.setOutUnitByIdx(idx);
+                                            this.convert();
+                                            document.getElementById(this.dom_prefix + "_Out" + this.unitNames[idx]).innerHTML = this.outValueText;
+                                        }
+                                    }
+                                    ConverterObject.prototype.setInValue = converter_setInValue;
+                                    ConverterObject.prototype.setInUnitByName = converter_setInUnitByName;
+                                    ConverterObject.prototype.setOutDecimals = converter_setOutDecimals;
+                                    ConverterObject.prototype.setOutUnitByName = converter_setOutUnitByName;
+                                    ConverterObject.prototype.setOutUnitByIdx = converter_setOutUnitByIdx;
+                                    ConverterObject.prototype.getStatus = converter_getStatus;
+                                    ConverterObject.prototype.getUnitDescriptionByName = converter_getUnitDescriptionByName;
+                                    ConverterObject.prototype.isUnitNameValid = converter_isUnitNameValid;
+                                    ConverterObject.prototype.convert = converter_convert;
+                                    ConverterObject.prototype.onValueChange = converter_onValueChange;
+                                    LOG.logOkFail('-*- ../calculla/a/calc/jsConverter.js loaded -*-', 1);
+                                    //-->
+                                </script>
+                                <script language="javascript" type="text/javascript">
+                                    // Javascript
+                                    var calcColumnarAddition_txt = new Array();
+                                    calcColumnarAddition_txt['HeaderGivenNumbers'] = 'given numbers';
+                                    calcColumnarAddition_txt['HeaderColumnSums'] = 'single-column result<br/>(no carry)';
+                                    calcColumnarAddition_txt['HeaderColumnSumsDec'] = 'decimal single-column result<br/>(no carry)';
+                                    calcColumnarAddition_txt['HeaderColumnSumsWithCarry'] = 'single-column result<br/><b>(carry included)</b>';
+                                    calcColumnarAddition_txt['HeaderColumnSumsWithCarryDec'] = 'decimal single-column result<br/><b>(carry included)</b>';
+                                    calcColumnarAddition_txt['HeaderCarry'] = 'carry';
+                                    calcColumnarAddition_txt['HeaderResult'] = 'result';
+                                    //-->
+                                </script>
+
+                                </div>
+                                <div class="input_zone">
+                                    <h1><span style='background:rgb(207, 201, 167);mso-highlight:rgb(207, 201, 167)'>Columnar Addition Calculator</span></h1>
+                                    <a href="https://calculla.com/columnar_addition_calculator" target="_blank"><span style="color:rgb(119, 207, 255)">Source</span></a>
+                                </br>
+                                </br>
+                                    <h1>ENTER YOUR NUMBERS HERE</h1>
+                                </br>
+                                    <textarea id="calcColumnarAddition_InValue" class="calc_TextArea" rows="4" cols="100" onchange="calcColumnarAddition_valueChange(this);" onkeyup="calcColumnarAddition_valueChange(this);">2 10 3,3</textarea>
+                                </br>
+                                </br>
+                                    <h1>
+                                        SETTINGS ( <a href="#" id="settings_closerButton" onclick="OPENCLOSER_turn('settings', 0); return false"></a>
+                                        )
+                                    
+                                    </h1>
+                                </br>
+                                    <span style="color:rgb(102, 102, 102)">Popular Sets (Click to Use):</span> <a href="#" id="calcColumnarAddition_template0" name="calcAscii_template0" onclick="calcColumnarAddition_settingsTemplate('student'); return false"><span style="color:rgb(119, 207, 255)">Primary School Student</span></a>
+                                    , <a href="#" id="calcColumnarAddition_template1" name="calcAscii_template1" onclick="calcColumnarAddition_settingsTemplate('simple'); return false"><span style="color:rgb(119, 207, 255)">Simple Addition</span></a>
+                                    , <a href="#" id="calcColumnarAddition_template2" name="calcAscii_template2" onclick="calcColumnarAddition_settingsTemplate('financial'); return false"><span style="color:rgb(119, 207, 255)">Financial (Cash Counting)</span></a>
+                                    , <a href="#" id="calcColumnarAddition_template3" name="calcAscii_template3" onclick="calcColumnarAddition_settingsTemplate('showAll'); return false"><span style="color:rgb(119, 207, 255)">Show me all you got</span></a>
+                                    <br/>
+                                    <br/>
+                                    <span id="settings_closerContent">
+                                        <table class="calcTable" cellspacing="1" cellpadding="0">
+                                            <tbody>
+                                                <tr class="header">
+                                                    <td colspan="2">view setup</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">show carry</td>
+                                                    <td>
+                                                        <input id="calcColumnarAddition_InShowCarry0" name="calcColumnarAddition_InShowCarry" value="1" type="radio" onclick="calcColumnarAddition_valueChange(this);" checked="checked">yes</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InShowCarry1" name="calcColumnarAddition_InShowCarry" value="0" type="radio" onclick="calcColumnarAddition_valueChange(this);">no</input>
+                                                        <br/>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">
+                                                        show single-column addition result<br/>
+                                                        <b>carry included</b>
+                                                    </td>
+                                                    <td>
+                                                        <input id="calcColumnarAddition_InShowColumnSumsWithCarry0" name="calcColumnarAddition_InShowColumnSumsWithCarry" value="1" type="radio" onclick="calcColumnarAddition_valueChange(this);" checked="checked">yes</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InShowColumnSumsWithCarry1" name="calcColumnarAddition_InShowColumnSumsWithCarry" value="0" type="radio" onclick="calcColumnarAddition_valueChange(this);">no</input>
+                                                        <br/>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">
+                                                        show single-column addition result<br/>
+                                                        <b>carry not included</b>
+                                                    </td>
+                                                    <td>
+                                                        <input id="calcColumnarAddition_InShowColumnSums0" name="calcColumnarAddition_InShowColumnSums" value="1" type="radio" onclick="calcColumnarAddition_valueChange(this);" checked="checked">yes</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InShowColumnSums1" name="calcColumnarAddition_InShowColumnSums" value="0" type="radio" onclick="calcColumnarAddition_valueChange(this);">no</input>
+                                                        <br/>
+                                                    </td>
+                                                </tr>
+                                                <tr class="header">
+                                                    <td colspan="2">cipher manipulation</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">fill with zeros up to</td>
+                                                    <td>
+                                                        <input type="text" id="calcColumnarAddition_InZerosFill" name="calcColumnarAddition_InZerosFill" style="text-align:right;width:30px" value="0" onchange="calcColumnarAddition_valueChange(this);" onkeyup="calcColumnarAddition_valueChange(this);"/>ciphers after comma
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">consider only</td>
+                                                    <td>
+                                                        <input type="text" id="calcColumnarAddition_InCutNumbers" name="calcColumnarAddition_InCutNumbers" style="text-align:right;width:30px" value="999" onchange="calcColumnarAddition_valueChange(this);" onkeyup="calcColumnarAddition_valueChange(this);"/>ciphers after the comma
+                                                    </td>
+                                                </tr>
+                                                <tr class="header">
+                                                    <td colspan="2">computer related</td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="text-align:right">number base</td>
+                                                    <td>
+                                                        <input id="calcColumnarAddition_InNumberBase0" name="calcColumnarAddition_InNumberBase" value="16" type="radio" onclick="calcColumnarAddition_valueChange(this);">16 (hex)</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InNumberBase1" name="calcColumnarAddition_InNumberBase" value="10" type="radio" onclick="calcColumnarAddition_valueChange(this);" checked="checked">10 (dec)</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InNumberBase2" name="calcColumnarAddition_InNumberBase" value="8" type="radio" onclick="calcColumnarAddition_valueChange(this);">8 (oct)</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InNumberBase3" name="calcColumnarAddition_InNumberBase" value="2" type="radio" onclick="calcColumnarAddition_valueChange(this);">2 (bin)</input>
+                                                        <br/>
+                                                        <input id="calcColumnarAddition_InNumberBase4" name="calcColumnarAddition_InNumberBase" value="0" type="radio" onclick="calcColumnarAddition_valueChange(this);">other </input>
+                                                        <input type="text" id="calcColumnarAddition_InNumberBaseOther" name="calcColumnarAddition_InNumberBaseOther" style="text-align:right;width:30px" value="4" onchange="calcColumnarAddition_valueChange(this);" onkeyup="calcColumnarAddition_valueChange(this);"/>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </span>
+                                    <script language="javascript" type="text/javascript">
+                                        <!--
+                                        OPENCLOSER_turn('settings', 0);
+                                        //-->
+                                    </script>
+                                    <h1>RESULT: SUMMARY</h1>
+                                    </br>
+                                    <table class="tableResult" cellspacing="1" cellpadding="0">
+                                        <tbody>
+                                            <tr>
+                                                <td id="calc_result"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    </br>
+                                    <h1>RESULT: STEP BY STEP</h1>
+                                    </br>
+                                    <div class="result" id="calc_resultColumnar"></div>
+                                    </br>
+                                    <script language="javascript" type="text/javascript">
+                                        // Javascript
+                                        LOG.log('-*- ../calculla/a/calc/jsSimpleReal.js loading -*-');
+                                        var RA_SimpleReal_charToCipherBig = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                                        var RA_SimpleReal_charToCipherSmall = '0123456789abcdefghijklmnopqrstuvwxyz';
+                                        function RA_SimpleRealObject() {
+                                            this.ciphers = new Array();
+                                            this.exp = 0;
+                                            this.base = 10;
+                                        }
+                                        function RA_SimpleReal_CreateNumbersArrayFromString(inputStr, parseSettings) {
+                                            var rv = new Object();
+                                            rv.list = new Array();
+                                            rv.ignoredStr = '';
+                                            rv.parsedStr = '';
+                                            rv.error = 0;
+                                            var parsedNumberIdx = 0;
+                                            var srcIdx = 0;
+                                            var createNextNumber = 1;
+                                            var parsingNowInteger = 1;
+                                            while ((rv.error == 0) && (srcIdx < inputStr.length)) {
+                                                if (createNextNumber) {
+                                                    rv.list[parsedNumberIdx] = new RA_SimpleRealObject();
+                                                    createNextNumber = 0;
+                                                }
+                                                var inChar = inputStr.charAt(srcIdx);
+                                                var inCharCode = inputStr.charCodeAt(srcIdx);
+                                                var cipher = RA_SimpleReal_charToCipherBig.indexOf(inChar);
+                                                if (cipher == -1)
+                                                    cipher = RA_SimpleReal_charToCipherSmall.indexOf(inChar);
+                                                if (cipher >= parseSettings.base)
+                                                    cipher = -1;
+                                                if (parseSettings.charsIgnore.indexOf(inChar) != -1) {
+                                                    rv.ignoredStr = rv.ignoredStr + inChar;
+                                                    rv.parsedStr = rv.parsedStr + inChar;
+                                                } else if (parseSettings.charsDecimals.indexOf(inChar) != -1) {
+                                                    if (parsingNowInteger) {
+                                                        parsingNowInteger = 0;
+                                                        rv.parsedStr = rv.parsedStr + inChar;
+                                                    } else {
+                                                        rv.error = 1;
+                                                    }
+                                                } else if (cipher != -1) {
+                                                    if (!parsingNowInteger) {
+                                                        rv.list[parsedNumberIdx].exp -= 1;
+                                                    }
+                                                    rv.list[parsedNumberIdx].ciphers.push(cipher);
+                                                    rv.parsedStr = rv.parsedStr + inChar;
+                                                } else {
+                                                    createNextNumber = 1;
+                                                    parsingNowInteger = 1;
+                                                    rv.parsedStr = rv.parsedStr + inChar;
+                                                }
+                                                if ((srcIdx == inputStr.length - 1) || (createNextNumber)) {
+                                                    if (rv.list[parsedNumberIdx].ciphers.length > 0) {
+                                                        rv.list[parsedNumberIdx].ciphers.reverse();
+                                                        parsedNumberIdx++;
+                                                    }
+                                                }
+                                                srcIdx++;
+                                            }
+                                            var lastOneIdx = rv.list.length - 1;
+                                            if ((rv.list[lastOneIdx] == null) || (rv.list[lastOneIdx].ciphers.length == 0)) {
+                                                rv.list.pop();
+                                            }
+                                            return rv;
+                                        }
+                                        function RA_SimpleRealObject_getIntegerPartSize() {
+                                            return this.ciphers.length + this.exp;
+                                        }
+                                        function RA_SimpleRealObject_getAsString() {
+                                            var rv = '';
+                                            var position = 0;
+                                            for (position = this.ciphers.length - 1; position >= 0; position--) {
+                                                rv = rv + RA_SimpleReal_charToCipherBig.substr(this.ciphers[position], 1);
+                                                if ((this.exp < 0) && (position == -this.exp)) {
+                                                    rv = rv + '.';
+                                                }
+                                            }
+                                            return rv;
+                                        }
+                                        function RA_SimpleRealObject_getCipherAsNumber(expIdx) {
+                                            var rv = 0;
+                                            var position = expIdx - this.exp;
+                                            if ((position >= 0) && (position < this.ciphers.length)) {
+                                                rv = this.ciphers[position];
+                                            }
+                                            return rv;
+                                        }
+                                        function RA_SimpleRealObject_getCipherAsString(expIdx, defaultString) {
+                                            var rv = defaultString;
+                                            var position = expIdx - this.exp;
+                                            if ((position >= 0) && (position < this.ciphers.length)) {
+                                                rv = RA_SimpleReal_charToCipherBig.substr(this.ciphers[position], 1);
+                                            }
+                                            return rv;
+                                        }
+                                        RA_SimpleRealObject.prototype.getIntegerPartSize = RA_SimpleRealObject_getIntegerPartSize;
+                                        RA_SimpleRealObject.prototype.getAsString = RA_SimpleRealObject_getAsString;
+                                        RA_SimpleRealObject.prototype.getCipherAsString = RA_SimpleRealObject_getCipherAsString;
+                                        RA_SimpleRealObject.prototype.getCipherAsNumber = RA_SimpleRealObject_getCipherAsNumber;
+                                        function RA_SimpleReal_GenerateDbgStringFromNumbersList(numbersList) {
+                                            var i = 0;
+                                            var rv = '';
+                                            rv = rv + 'numbersCount: ' + numbersList.list.length + '<br/>';
+                                            rv = rv + 'ignored: ' + numbersList.ignoredStr + '<br/>';
+                                            rv = rv + 'parsed: ' + numbersList.parsedStr + '<br/>';
+                                            rv = rv + 'numbers:<br/>';
+                                            for (i = 0; i < numbersList.list.length; i++) {
+                                                var j = 0;
+                                                var ciphers = '';
+                                                for (j = 0; j < numbersList.list[i].ciphers.length; j++) {
+                                                    ciphers = ciphers + numbersList.list[i].ciphers[j] + ' ';
+                                                }
+                                                rv = rv + 'i:' + i + '  cipher:' + ciphers + ' exp: ' + numbersList.list[i].exp + '<br/>';
+                                            }
+                                            return rv;
+                                        }
+                                        LOG.logOkFail('-*- ../calculla/a/calc/jsSimpleReal.js loaded -*-', 1);
+                                        //-->
+                                    </script>
+                                    <script language="javascript" type="text/javascript">
+                                        // Javascript
+                                        LOG.log('-*- ../calculla/a/calc/calcColumnarAddition.js loading -*-');
+                                        function calcColumnarAddition_valueChange(elem) {
+                                            var inValue = document.getElementById("calcColumnarAddition_InValue").value;
+                                            var inZerosFill = NUMBER_parseInput(document.getElementById("calcColumnarAddition_InZerosFill").value);
+                                            var inCutNumbers = NUMBER_parseInput(document.getElementById("calcColumnarAddition_InCutNumbers").value);
+                                            var inShowColumnSums = NUMBER_parseInput(INPUT_getRadioValue('calcColumnarAddition_InShowColumnSums', '0'));
+                                            var inShowColumnSumsWithCarry = NUMBER_parseInput(INPUT_getRadioValue('calcColumnarAddition_InShowColumnSumsWithCarry', '0'));
+                                            var inShowCarry = NUMBER_parseInput(INPUT_getRadioValue('calcColumnarAddition_InShowCarry', '0'));
+                                            TEXTAREA_autoResizeVertical('calcColumnarAddition_InValue', 2, 20);
+                                            if ((elem) && (elem.name == 'calcColumnarAddition_InNumberBaseOther')) {
+                                                INPUT_setRadioValue('calcColumnarAddition_InNumberBase', 0);
+                                            }
+                                            var inNumberBase = NUMBER_parseInput(INPUT_getRadioValue('calcColumnarAddition_InNumberBase', 10));
+                                            if (inNumberBase == 0) {
+                                                inNumberBase = NUMBER_parseInput(document.getElementById("calcColumnarAddition_InNumberBaseOther").value);
+                                            }
+                                            var parseSettings = new Object();
+                                            parseSettings.base = inNumberBase;
+                                            parseSettings.charsIgnore = '';
+                                            parseSettings.charsDecimals = ',.';
+                                            parseSettings.minusAllowed = 0;
+                                            var numbersList = RA_SimpleReal_CreateNumbersArrayFromString(inValue, parseSettings);
+                                            var rv = '';
+                                            if (inCutNumbers < 0) {} else if ((inNumberBase < 2) || (inNumberBase > 36)) {} else {
+                                                var result_SimpleRealObj = new RA_SimpleRealObject();
+                                                result_SimpleRealObj.base = inNumberBase;
+                                                if (inZerosFill > inCutNumbers) {
+                                                    inZerosFill = inCutNumbers;
+                                                }
+                                                for (numberIdx = 0; numberIdx < numbersList.list.length; numberIdx++) {
+                                                    while (-numbersList.list[numberIdx].exp > inCutNumbers) {
+                                                        numbersList.list[numberIdx].exp += 1;
+                                                        numbersList.list[numberIdx].ciphers.shift();
+                                                    }
+                                                    while (-numbersList.list[numberIdx].exp < inZerosFill) {
+                                                        numbersList.list[numberIdx].exp -= 1;
+                                                        numbersList.list[numberIdx].ciphers.unshift(0);
+                                                    }
+                                                }
+                                                var lowestCipherExp = 0;
+                                                var highestCipherExp = 0;
+                                                for (numberIdx = 0; numberIdx < numbersList.list.length; numberIdx++) {
+                                                    if (numbersList.list[numberIdx].exp < lowestCipherExp) {
+                                                        lowestCipherExp = numbersList.list[numberIdx].exp;
+                                                    }
+                                                    var cipherExp = numbersList.list[numberIdx].getIntegerPartSize() - 1;
+                                                    if (cipherExp > highestCipherExp) {
+                                                        highestCipherExp = cipherExp;
+                                                    }
+                                                }
+                                                var resultNumbersCipherCnt = highestCipherExp - lowestCipherExp + 1;
+                                                var givenNumberSumPerColumn = new Array();
+                                                var carryPerColumn = new Array();
+                                                var givenNumberAndCarryPerColumn = new Array();
+                                                var resultCipherPerColumn = new Array();
+                                                carryPerColumn[0] = 0;
+                                                positionIdx = 0;
+                                                while (positionIdx < resultNumbersCipherCnt) {
+                                                    givenNumberSumPerColumn[positionIdx] = 0;
+                                                    for (numberIdx = 0; numberIdx < numbersList.list.length; numberIdx++) {
+                                                        givenNumberSumPerColumn[positionIdx] = givenNumberSumPerColumn[positionIdx] + numbersList.list[numberIdx].getCipherAsNumber(positionIdx + lowestCipherExp);
+                                                    }
+                                                    givenNumberAndCarryPerColumn[positionIdx] = givenNumberSumPerColumn[positionIdx] + carryPerColumn[positionIdx];
+                                                    carryPerColumn[positionIdx + 1] = Math.floor(givenNumberAndCarryPerColumn[positionIdx] / inNumberBase);
+                                                    result_SimpleRealObj.ciphers.push(givenNumberAndCarryPerColumn[positionIdx] % inNumberBase);
+                                                    if (((positionIdx + 1) == resultNumbersCipherCnt) && (carryPerColumn[positionIdx + 1] > 0)) {
+                                                        resultNumbersCipherCnt++;
+                                                        highestCipherExp++;
+                                                    }
+                                                    positionIdx++;
+                                                }
+                                                result_SimpleRealObj.exp = lowestCipherExp;
+                                                var horizontalSeparatorColumnSkipSize = (lowestCipherExp < 0) ? (resultNumbersCipherCnt + 1) : (resultNumbersCipherCnt);
+                                                var horizontalSeparatorTxt = '<tr><td style="padding:0px"></td><td colspan="' + horizontalSeparatorColumnSkipSize + '" style="background-color:#000000;padding:1px"></td></tr>';
+                                                var rv = TABLE_generateOpen('tableResult');
+                                                if (inShowCarry) {
+                                                    rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderCarry + '</td>';
+                                                    for (expIdx = highestCipherExp; expIdx >= lowestCipherExp; expIdx--) {
+                                                        var carry = '';
+                                                        if (carryPerColumn[expIdx - lowestCipherExp] != 0) {
+                                                            carry = (carryPerColumn[expIdx - lowestCipherExp]).toString(inNumberBase).toUpperCase();
+                                                        }
+                                                        if (expIdx == -1) {
+                                                            rv = rv + '<td></td>';
+                                                        }
+                                                        rv = rv + '<td>' + carry + '</td>';
+                                                    }
+                                                    rv = rv + '</tr>' + horizontalSeparatorTxt;
+                                                }
+                                                for (numberIdx = 0; numberIdx < numbersList.list.length; numberIdx++) {
+                                                    rv = rv + '<tr>';
+                                                    if (numberIdx == 0) {
+                                                        rv = rv + '<td class="header" rowspan="' + numbersList.list.length + '">' + calcColumnarAddition_txt.HeaderGivenNumbers + '</td>';
+                                                    }
+                                                    for (expIdx = highestCipherExp; expIdx >= lowestCipherExp; expIdx--) {
+                                                        if (expIdx == -1) {
+                                                            rv = rv + '<td>.</td>';
+                                                        }
+                                                        rv = rv + '<td>' + numbersList.list[numberIdx].getCipherAsString(expIdx, '') + '</td>';
+                                                    }
+                                                    rv = rv + '</tr>';
+                                                }
+                                                rv = rv + horizontalSeparatorTxt;
+                                                if ((inShowColumnSums) || (inShowColumnSumsWithCarry)) {
+                                                    var txtSums = '';
+                                                    var txtSumsDec = '';
+                                                    var txtSumsWithCarry = '';
+                                                    var txtSumsDecWithCarry = '';
+                                                    for (expIdx = highestCipherExp; expIdx >= lowestCipherExp; expIdx--) {
+                                                        if (expIdx == -1) {
+                                                            txtSums = txtSums + '<td>.</td>';
+                                                            txtSumsDec = txtSumsDec + '<td>.</td>';
+                                                            txtSumsWithCarry = txtSumsWithCarry + '<td>.</td>';
+                                                            txtSumsDecWithCarry = txtSumsDecWithCarry + '<td>.</td>';
+                                                        }
+                                                        txtSums = txtSums + '<td>' + (givenNumberSumPerColumn[expIdx - lowestCipherExp]).toString(inNumberBase).toUpperCase() + '</td>';
+                                                        txtSumsDec = txtSumsDec + '<td>' + (givenNumberSumPerColumn[expIdx - lowestCipherExp]).toString(10).toUpperCase() + '</td>';
+                                                        txtSumsWithCarry = txtSumsWithCarry + '<td>' + (givenNumberAndCarryPerColumn[expIdx - lowestCipherExp]).toString(inNumberBase).toUpperCase() + '</td>';
+                                                        txtSumsDecWithCarry = txtSumsDecWithCarry + '<td>' + (givenNumberAndCarryPerColumn[expIdx - lowestCipherExp]).toString(10).toUpperCase() + '</td>';
+                                                    }
+                                                    if (inShowColumnSums) {
+                                                        rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderColumnSums + '</td>' + txtSums + '</tr>';
+                                                        if (inNumberBase != 10) {
+                                                            rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderColumnSumsDec + '</td>' + txtSumsDec + '</tr>';
+                                                        }
+                                                    }
+                                                    if (inShowColumnSumsWithCarry) {
+                                                        rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderColumnSumsWithCarry + '</td>' + txtSumsWithCarry + '</tr>';
+                                                        if (inNumberBase != 10) {
+                                                            rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderColumnSumsWithCarryDec + '</td>' + txtSumsDecWithCarry + '</tr>';
+                                                        }
+                                                    }
+                                                    rv = rv + horizontalSeparatorTxt;
+                                                }
+                                                rv = rv + '<tr><td class="header">' + calcColumnarAddition_txt.HeaderResult + '</td>';
+                                                for (expIdx = highestCipherExp; expIdx >= lowestCipherExp; expIdx--) {
+                                                    if (expIdx == -1) {
+                                                        rv = rv + '<td>.</td>';
+                                                    }
+                                                    rv = rv + '<td>' + result_SimpleRealObj.getCipherAsString(expIdx, '') + '</td>';
+                                                }
+                                                rv = rv + '</tr>';
+                                                rv = rv + TABLE_generateClose();
+                                            }
+                                            document.getElementById("calc_result").innerHTML = result_SimpleRealObj.getAsString();
+                                            document.getElementById("calc_resultColumnar").innerHTML = rv;
+                                        }
+                                        function calcColumnarAddition_settingsTemplate(templateStr) {
+                                            var inZerosFill = 0;
+                                            var inCutNumbers = 999;
+                                            var inShowCarry = 0;
+                                            var inShowColumnSums = 0;
+                                            var inShowColumnSumsWithCarry = 0;
+                                            var inNumberBase = 10;
+                                            switch (templateStr) {
+                                            case 'student':
+                                                inShowCarry = 1;
+                                                break;
+                                            case 'simple':
+                                                break;
+                                            case 'financial':
+                                                inZerosFill = 2;
+                                                break;
+                                            case 'showAll':
+                                                inShowCarry = 1;
+                                                inShowColumnSums = 1;
+                                                inShowColumnSumsWithCarry = 1;
+                                                break;
+                                            }
+                                            document.getElementById("calcColumnarAddition_InZerosFill").value = inZerosFill;
+                                            document.getElementById("calcColumnarAddition_InCutNumbers").value = inCutNumbers;
+                                            INPUT_setRadioValue('calcColumnarAddition_InShowCarry', inShowCarry);
+                                            INPUT_setRadioValue('calcColumnarAddition_InShowColumnSums', inShowColumnSums);
+                                            INPUT_setRadioValue('calcColumnarAddition_InShowColumnSumsWithCarry', inShowColumnSums);
+                                            calcColumnarAddition_valueChange(null);
+                                        }
+                                        calcColumnarAddition_settingsTemplate('student');
+                                        LOG.logOkFail('-*- ../calculla/a/calc/calcColumnarAddition.js loaded -*-', 1);
+                                        //-->
+                                    </script>
+
+            </div>
+            <div id="jsLog"></div>
+            <script language="javascript" type="text/javascript">
+                // Javascript
+                LOG.log('-*- ../calculla/l/jsCommonEnd.js loading -*-');
+                var bdy = document.getElementsByTagName('body')[0];
+                bdy.onchange = EVENTS_domInputEvent;
+                bdy.onkeydown = EVENTS_domInputEvent;
+                bdy.onkeyup = EVENTS_domInputEvent;
+                bdy.onkeypress = EVENTS_domInputEvent;
+                bdy.onmousemove = EVENTS_domInputEvent;
+                bdy.onmousedown = EVENTS_domInputEvent;
+                bdy.onmouseup = EVENTS_domInputEvent;
+                bdy.onmouseover = EVENTS_domInputEvent;
+                bdy.onmouseout = EVENTS_domInputEvent;
+                bdy.onblur = EVENTS_domInputEvent;
+                bdy.onchange = EVENTS_domInputEvent;
+                bdy.onfocus = EVENTS_domInputEvent;
+                bdy.onreset = EVENTS_domInputEvent;
+                bdy.onselect = EVENTS_domInputEvent;
+                bdy.onsubmit = EVENTS_domInputEvent;
+                ATOMS.doInitializations();
+                LOG.logOkFail('-*- ../calculla/l/jsCommonEnd.js loaded -*-', 1);
+                //-->
+            </script>
+        </body>
+    </html>
